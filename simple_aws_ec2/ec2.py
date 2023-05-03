@@ -66,7 +66,7 @@ class Ec2Instance:
 
         Ref:
 
-        - https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/docdb/client/describe_db_instances.html
+        - https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/client/describe_instances.html
         """
         return cls(
             id=dct["InstanceId"],
@@ -84,36 +84,46 @@ class Ec2Instance:
         )
 
     def is_pending(self) -> bool:
+        """ """
         return self.status == EC2InstanceStatusEnum.pending.value
 
     def is_running(self) -> bool:
+        """ """
         return self.status == EC2InstanceStatusEnum.running.value
 
     def is_shutting_down(self) -> bool:
+        """ """
         return self.status == EC2InstanceStatusEnum.shutting_down.value
 
     def is_terminated(self) -> bool:
+        """ """
         return self.status == EC2InstanceStatusEnum.terminated.value
 
     def is_stopping(self) -> bool:
+        """ """
         return self.status == EC2InstanceStatusEnum.stopping.value
 
     def is_stopped(self) -> bool:
+        """ """
         return self.status == EC2InstanceStatusEnum.stopped.value
 
     def is_ready_to_stop(self) -> bool:
+        """ """
         return self.is_running() is True
 
     def is_ready_to_start(self) -> bool:
+        """ """
         return self.is_stopped() is True
 
     def start_instance(self, bsm: "BotoSesManager"):
+        """ """
         return bsm.ec2_client.start_instances(
             InstanceIds=[self.id],
             DryRun=False,
         )
 
     def stop_instance(self, bsm: "BotoSesManager"):
+        """ """
         return bsm.ec2_client.stop_instances(
             InstanceIds=[self.id],
             DryRun=False,
@@ -139,7 +149,9 @@ class Ec2Instance:
         bsm: "BotoSesManager",
         filters: T.List[dict] = NOTHING,
         instance_ids: T.List[str] = NOTHING,
-    ) -> "Ec2InstanceIterproxy":
+    ) -> "Ec2InstanceIterProxy":
+        """ """
+
         def run():
             paginator = bsm.ec2_client.get_paginator("describe_instances")
             response_iterator = paginator.paginate(
@@ -155,10 +167,11 @@ class Ec2Instance:
             for response in response_iterator:
                 yield from cls._yield_dict_from_describe_instances_response(response)
 
-        return Ec2InstanceIterproxy(run())
+        return Ec2InstanceIterProxy(run())
 
     @classmethod
     def from_id(cls, bsm: "BotoSesManager", inst_id: str) -> T.Optional["Ec2Instance"]:
+        """ """
         return cls.query(
             bsm,
             instance_ids=[inst_id],
@@ -168,6 +181,7 @@ class Ec2Instance:
     def from_ec2_inside(
         cls, bsm: "BotoSesManager"
     ) -> T.Optional["Ec2Instance"]:  # pragma: no cover
+        """ """
         instance_id = get_instance_id()
         return cls.query(
             bsm,
@@ -180,7 +194,8 @@ class Ec2Instance:
         bsm: "BotoSesManager",
         key: str,
         value: str,
-    ) -> "Ec2InstanceIterproxy":
+    ) -> "Ec2InstanceIterProxy":
+        """ """
         return cls.query(
             bsm,
             filters=[
@@ -193,9 +208,12 @@ class Ec2Instance:
         cls,
         bsm: "BotoSesManager",
         name: str,
-    ) -> "Ec2InstanceIterproxy":
+    ) -> "Ec2InstanceIterProxy":
+        """ """
         return cls.from_tag_key_value(bsm, key="Name", value=name)
 
 
-class Ec2InstanceIterproxy(IterProxy[Ec2Instance]):
+class Ec2InstanceIterProxy(IterProxy[Ec2Instance]):
+    """ """
+
     pass

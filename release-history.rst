@@ -4,7 +4,7 @@ Release and Version History
 ==============================================================================
 
 
-0.0.3 (TODO)
+Backlog (TODO)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Features and Improvements**
 
@@ -15,18 +15,16 @@ Release and Version History
 **Miscellaneous**
 
 
-0.0.2 (TODO)
+0.1.2 (2023-05-04)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-**Features and Improvements**
-
-**Minor Improvements**
-
-**Bugfixes**
-
 **Miscellaneous**
 
+- rename ``Ec2InstanceIterproxy`` to ``Ec2InstanceIterProxy``.
 
-0.0.1 (2023-05-03)
+
+0.1.1 (2023-05-03)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Features and Improvements**
 
 - First release
+- Add ``EC2Instance`` data class

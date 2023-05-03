@@ -61,9 +61,13 @@ Usage:
 
     bsm = BotoSesManager()
 
+    # get ec2 by id
     ec2_inst = Ec2Instance.from_id(bsm, "i-1a2b3c")
+    # get ec2 by running code from inside of ec2
     ec2_inst = EC2Instance.from_ec2_inside(bsm)
-    ec2_inst = EC2Instance.from_ec2_name(bsm, "my-server).one_or_none()
+    # get ec2 by it's name, it returns a iter proxy that may have multiple ec2
+    ec2_inst = EC2Instance.from_ec2_name(bsm, "my-server").one_or_none()
+    # get ec2 by tag key value pair, it returns a iter proxy that may have multiple ec2
     ec2_inst = EC2Instance.from_tag_key_value(bsm, key="Env", value="prod").one_or_none()
     ec2_inst = EC2Instance.query(bsm, filters=..., instnace_ids=...).all()
 

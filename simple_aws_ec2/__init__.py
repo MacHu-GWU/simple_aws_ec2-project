@@ -12,7 +12,7 @@ try:
     from .api import (
         EC2InstanceStatusEnum,
         Ec2Instance,
-        Ec2InstanceIterproxy,
+        Ec2InstanceIterProxy,
     )
-except ImportError as e:
+except ImportError as e:  # pragma: no cover
     pass

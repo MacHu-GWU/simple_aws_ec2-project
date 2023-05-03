@@ -8,7 +8,7 @@ def test():
 
     _ = api.EC2InstanceStatusEnum
     _ = api.Ec2Instance
-    _ = api.Ec2InstanceIterproxy
+    _ = api.Ec2InstanceIterProxy
 
 
 if __name__ == "__main__":
