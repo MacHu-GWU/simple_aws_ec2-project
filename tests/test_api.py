@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from pytest import raises, approx
 
 
 def test():
-    import simple_aws_ec2
-    pass
+    from simple_aws_ec2 import api
+
+    _ = api.EC2InstanceStatusEnum
+    _ = api.Ec2Instance
+    _ = api.Ec2InstanceIterproxy
 
 
 if __name__ == "__main__":
