@@ -154,16 +154,17 @@ class Ec2Instance:
 
         def run():
             paginator = bsm.ec2_client.get_paginator("describe_instances")
-            response_iterator = paginator.paginate(
-                **resolve_kwargs(
-                    Filters=filters,
-                    InstanceIds=instance_ids,
-                    PaginationConfig={
-                        "MaxItems": 9999,
-                        "PageSize": 100,
-                    },
-                )
+            kwargs = resolve_kwargs(
+                Filters=filters,
+                InstanceIds=instance_ids,
+                PaginationConfig={
+                    "MaxItems": 9999,
+                    "PageSize": 100,
+                },
             )
+            if instance_ids is not NOTHING:
+                del kwargs["PaginationConfig"]
+            response_iterator = paginator.paginate(**kwargs)
             for response in response_iterator:
                 yield from cls._yield_dict_from_describe_instances_response(response)
 
