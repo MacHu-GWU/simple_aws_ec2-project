@@ -32,6 +32,12 @@ def get_instance_id() -> str:  # pragma: no cover
 
 
 class EC2InstanceStatusEnum(str, enum.Enum):
+    """
+    EC2 instance status enumerations.
+
+    See also: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-instance-state-changes.html
+    """
+
     pending = "pending"
     running = "running"
     shutting_down = "shutting-down"
@@ -136,12 +142,9 @@ class Ec2Instance:
     def _yield_dict_from_describe_instances_response(
         cls, res: dict
     ) -> T.Iterable["Ec2Instance"]:
-        reservations = res.get("Reservations", [])
-        if len(reservations):
-            instances = reservations[0].get("Instances", [])
-            if len(instances):
-                for instance_dict in instances:
-                    yield cls.from_dict(instance_dict)
+        for reservation in res.get("Reservations", []):
+            for instance_dict in reservation.get("Instances", []):
+                yield cls.from_dict(instance_dict)
 
     @classmethod
     def query(
@@ -150,7 +153,9 @@ class Ec2Instance:
         filters: T.List[dict] = NOTHING,
         instance_ids: T.List[str] = NOTHING,
     ) -> "Ec2InstanceIterProxy":
-        """ """
+        """
+        TODO: docstring
+        """
 
         def run():
             paginator = bsm.ec2_client.get_paginator("describe_instances")
@@ -172,7 +177,9 @@ class Ec2Instance:
 
     @classmethod
     def from_id(cls, bsm: "BotoSesManager", inst_id: str) -> T.Optional["Ec2Instance"]:
-        """ """
+        """
+        TODO: docstring
+        """
         return cls.query(
             bsm,
             instance_ids=[inst_id],
@@ -182,7 +189,9 @@ class Ec2Instance:
     def from_ec2_inside(
         cls, bsm: "BotoSesManager"
     ) -> T.Optional["Ec2Instance"]:  # pragma: no cover
-        """ """
+        """
+        TODO: docstring
+        """
         instance_id = get_instance_id()
         return cls.query(
             bsm,
@@ -196,7 +205,9 @@ class Ec2Instance:
         key: str,
         value: str,
     ) -> "Ec2InstanceIterProxy":
-        """ """
+        """
+        TODO: docstring
+        """
         return cls.query(
             bsm,
             filters=[
@@ -210,11 +221,15 @@ class Ec2Instance:
         bsm: "BotoSesManager",
         name: str,
     ) -> "Ec2InstanceIterProxy":
-        """ """
+        """
+        TODO: docstring
+        """
         return cls.from_tag_key_value(bsm, key="Name", value=name)
 
 
 class Ec2InstanceIterProxy(IterProxy[Ec2Instance]):
-    """ """
+    """
+    TODO: docstring
+    """
 
     pass
