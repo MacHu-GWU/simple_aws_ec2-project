@@ -5,7 +5,7 @@ import pytest
 import moto
 from boto_session_manager import BotoSesManager
 
-from simple_aws_ec2.ec2 import Ec2Instance
+from simple_aws_ec2.ec2 import Ec2Instance, Image, ImageOwnerGroupEnum
 
 
 class TestEc2:
@@ -50,6 +50,11 @@ class TestEc2:
             ],
         )["Instances"][0]["InstanceId"]
 
+        cls.image_id_1 = cls.bsm.ec2_client.create_image(
+            Name="my-image-1",
+            InstanceId=cls.inst_id_1,
+        )["ImageId"]
+
     @classmethod
     def setup_class(cls):
         cls.mock_ec2 = moto.mock_ec2()
@@ -61,14 +66,14 @@ class TestEc2:
     def teardown_class(cls):
         cls.mock_ec2.stop()
 
-    def _test(self):
+    def _test_ec2(self):
         inst_id_list = [
             self.inst_id_1,
             self.inst_id_2,
             self.inst_id_3,
         ]
         for inst_id in inst_id_list:
-            ec2_inst = Ec2Instance.from_id(self.bsm, inst_id)
+            ec2_inst = Ec2Instance.from_id(self.bsm.ec2_client, inst_id)
             assert ec2_inst.is_running() is True
             assert ec2_inst.is_pending() is False
             assert ec2_inst.is_shutting_down() is False
@@ -79,32 +84,65 @@ class TestEc2:
             assert ec2_inst.is_ready_to_stop() is True
             assert ec2_inst.id == inst_id
 
-        ec2_inst_list = Ec2Instance.from_ec2_name(self.bsm, "my-server").all()
+        ec2_inst_list = Ec2Instance.from_ec2_name(
+            self.bsm.ec2_client, "my-server"
+        ).all()
         assert len(ec2_inst_list) == 1
         ec2_inst = ec2_inst_list[0]
         assert ec2_inst.id == self.inst_id_2
         assert ec2_inst.tags["Name"] == "my-server"
 
-        ec2_inst.stop_instance(self.bsm)
-        ec2_inst = Ec2Instance.from_ec2_name(self.bsm, "my-server").one()
+        ec2_inst.stop_instance(self.bsm.ec2_client)
+        ec2_inst = Ec2Instance.from_ec2_name(self.bsm.ec2_client, "my-server").one()
         assert ec2_inst.is_running() is False
         assert ec2_inst.is_stopped() is True
 
-        ec2_inst.start_instance(self.bsm)
-        ec2_inst = Ec2Instance.from_ec2_name(self.bsm, "my-server").one()
+        ec2_inst.start_instance(self.bsm.ec2_client)
+        ec2_inst = Ec2Instance.from_ec2_name(self.bsm.ec2_client, "my-server").one()
         assert ec2_inst.is_stopped() is False
         assert ec2_inst.is_running() is True
 
         ec2_inst_list = Ec2Instance.from_tag_key_value(
-            self.bsm, key="Env", value="dev"
+            self.bsm.ec2_client, key="Env", value="dev"
         ).all()
         assert len(ec2_inst_list) == 1
         ec2_inst = ec2_inst_list[0]
         assert ec2_inst.id == self.inst_id_3
         assert ec2_inst.tags["Env"] == "dev"
 
+    def _test_image(self):
+        image_list = Image.query(ec2_client=self.bsm.ec2_client).all()
+        assert len(image_list) >= 500
+        image_list = Image.query(
+            ec2_client=self.bsm.ec2_client,
+            owners=[ImageOwnerGroupEnum.self.value],
+        ).all()
+        assert len(image_list) == 1
+        assert self.image_id_1 == image_list[0].id
+
+        image = image_list[0]
+
+        assert image.image_type_is_machine() is True
+        assert image.image_type_is_kernel() is False
+        assert image.image_type_is_ramdisk() is False
+        assert image.is_pending() is False
+        assert image.is_available() is True
+        assert image.is_invalid() is False
+        assert image.is_deregistered() is False
+        assert image.is_transient() is False
+        assert image.is_failed() is False
+        assert image.is_error() is False
+        assert image.image_root_device_type_is_ebs() is False
+        assert image.image_root_device_type_is_instance_store() is False
+        assert image.image_virtualization_type_is_hvm() is True
+        assert image.image_virtualization_type_is_paravirtual() is False
+        assert image.image_boot_mode_is_legacy_bios() is False
+        assert image.image_boot_mode_is_uefi() is False
+        assert image.image_boot_mode_is_uefi_preferred() is False
+
     def test(self):
-        self._test()
+        self._test_ec2()
+        self._test_image()
 
 
 if __name__ == "__main__":

@@ -15,6 +15,25 @@ Backlog (TODO)
 **Miscellaneous**
 
 
+0.2.1 (2023-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Breaking change**
+
+- all method now take ec2_client as the first argument. no longer need ``boto_session_manager``.
+
+**Features and Improvements**
+
+- add :class:`~simple_aws_ec2.ec2.Image` class.
+
+**Minor Improvements**
+
+- :meth`~simple_aws_ec2.ec2.Ec2Instance.from_tag_key_value` now take list of values.
+
+**Bugfixes**
+
+**Miscellaneous**
+
+
 0.1.4 (2023-05-06)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Bugfixes**
