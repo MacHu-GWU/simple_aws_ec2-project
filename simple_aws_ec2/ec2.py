@@ -646,6 +646,8 @@ class Image:
         else:
             raise CannotDetectOSTypeError
 
+        raise CannotDetectOSTypeError
+
     def is_amazon_linux_os(self) -> bool:  # pragma: no cover
         """"""
         return self.os_type is ImageOSTypeEnum.AmazonLinux
