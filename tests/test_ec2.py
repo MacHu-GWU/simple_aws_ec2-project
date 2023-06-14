@@ -53,6 +53,14 @@ class TestEc2:
         cls.image_id_1 = cls.bsm.ec2_client.create_image(
             Name="my-image-1",
             InstanceId=cls.inst_id_1,
+            TagSpecifications=[
+                dict(
+                    ResourceType="image",
+                    Tags=[
+                        dict(Key="Env", Value="dev"),
+                    ],
+                )
+            ],
         )["ImageId"]
 
     @classmethod
@@ -84,31 +92,42 @@ class TestEc2:
             assert ec2_inst.is_ready_to_stop() is True
             assert ec2_inst.id == inst_id
 
-        ec2_inst_list = Ec2Instance.from_ec2_name(
+        ec2_inst_list_1 = Ec2Instance.from_ec2_name(
             self.bsm.ec2_client, "my-server"
         ).all()
-        assert len(ec2_inst_list) == 1
-        ec2_inst = ec2_inst_list[0]
-        assert ec2_inst.id == self.inst_id_2
-        assert ec2_inst.tags["Name"] == "my-server"
+        ec2_inst_list_2 = Ec2Instance.from_ec2_name(
+            self.bsm.ec2_client,
+            ["my-server"],
+        ).all()
+        for ec2_inst_list in [ec2_inst_list_1, ec2_inst_list_2]:
+            assert len(ec2_inst_list) == 1
+            ec2_inst = ec2_inst_list[0]
+            assert ec2_inst.id == self.inst_id_2
+            assert ec2_inst.tags["Name"] == "my-server"
 
+        ec2_inst_list_1 = Ec2Instance.from_tag_key_value(
+            self.bsm.ec2_client, key="Env", value="dev"
+        ).all()
+        ec2_inst_list_2 = Ec2Instance.from_tag_key_value(
+            self.bsm.ec2_client, key="Env", value=["dev"]
+        ).all()
+        for ec2_inst_list in [ec2_inst_list_1, ec2_inst_list_2]:
+            assert len(ec2_inst_list) == 1
+            ec2_inst = ec2_inst_list[0]
+            assert ec2_inst.id == self.inst_id_3
+            assert ec2_inst.tags["Env"] == "dev"
+
+    def _test_ec2_start_and_stop(self):
+        ec2_inst = Ec2Instance.from_id(self.bsm.ec2_client, self.inst_id_1)
         ec2_inst.stop_instance(self.bsm.ec2_client)
-        ec2_inst = Ec2Instance.from_ec2_name(self.bsm.ec2_client, "my-server").one()
+        ec2_inst = Ec2Instance.from_id(self.bsm.ec2_client, self.inst_id_1)
         assert ec2_inst.is_running() is False
         assert ec2_inst.is_stopped() is True
 
         ec2_inst.start_instance(self.bsm.ec2_client)
-        ec2_inst = Ec2Instance.from_ec2_name(self.bsm.ec2_client, "my-server").one()
+        ec2_inst = Ec2Instance.from_id(self.bsm.ec2_client, self.inst_id_1)
         assert ec2_inst.is_stopped() is False
         assert ec2_inst.is_running() is True
-
-        ec2_inst_list = Ec2Instance.from_tag_key_value(
-            self.bsm.ec2_client, key="Env", value="dev"
-        ).all()
-        assert len(ec2_inst_list) == 1
-        ec2_inst = ec2_inst_list[0]
-        assert ec2_inst.id == self.inst_id_3
-        assert ec2_inst.tags["Env"] == "dev"
 
     def _test_image(self):
         image_list = Image.query(ec2_client=self.bsm.ec2_client).all()
@@ -140,8 +159,32 @@ class TestEc2:
         assert image.image_boot_mode_is_uefi() is False
         assert image.image_boot_mode_is_uefi_preferred() is False
 
+        image_list_1 = Image.from_image_name(self.bsm.ec2_client, "my-image-1").all()
+        image_list_2 = Image.from_image_name(
+            self.bsm.ec2_client,
+            ["my-image-1"],
+        ).all()
+        for image_list in [image_list_1, image_list_2]:
+            assert len(image_list) == 1
+            image = image_list[0]
+            assert image.id == self.image_id_1
+            assert image.name == "my-image-1"
+
+        image_list_1 = Image.from_tag_key_value(
+            self.bsm.ec2_client, key="Env", value="dev"
+        ).all()
+        image_list_2 = Image.from_tag_key_value(
+            self.bsm.ec2_client, key="Env", value=["dev"]
+        ).all()
+        for image_list in [image_list_1, image_list_2]:
+            assert len(image_list) == 1
+            image = image_list[0]
+            assert image.id == self.image_id_1
+            assert image.tags["Env"] == "dev"
+
     def test(self):
         self._test_ec2()
+        self._test_ec2_start_and_stop()
         self._test_image()
 
 

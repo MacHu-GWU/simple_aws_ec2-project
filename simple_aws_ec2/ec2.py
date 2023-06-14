@@ -186,6 +186,8 @@ class Ec2Instance:
         instance_ids: T.List[str] = NOTHING,
     ) -> "Ec2InstanceIterProxy":
         """
+        A wrapper around ``ec2_client.describe_instances``.
+
         Multiple filters join with logic "AND", multiple values in a filter
         join with logic "OR".
         """
@@ -257,12 +259,21 @@ class Ec2Instance:
     def from_ec2_name(
         cls,
         ec2_client,
-        name: str,
+        name: T.Union[str, T.Iterable[str]],
     ) -> "Ec2InstanceIterProxy":
         """
-        TODO: docstring
+        Get EC2 instance details by the ``tag:name``.
         """
-        return cls.from_tag_key_value(ec2_client, key="Name", value=name)
+        if isinstance(name, str):
+            names = [name]
+        else:
+            names = name
+        return cls.query(
+            ec2_client=ec2_client,
+            filters=[
+                dict(Name=f"tag:Name", Values=names),
+            ],
+        )
 
 
 class Ec2InstanceIterProxy(IterProxy[Ec2Instance]):
@@ -474,6 +485,8 @@ class Image:
         include_deprecated: bool = NOTHING,
     ) -> "ImageIterProxy":
         """
+        A wrapper around ``ec2_client.describe_images``.
+
         Multiple filters join with logic "AND", multiple values in a filter
         join with logic "OR".
         """
@@ -498,6 +511,62 @@ class Image:
                 yield from cls._yield_dict_from_describe_images_response(response)
 
         return ImageIterProxy(run())
+
+    @classmethod
+    def from_id(
+        cls,
+        ec2_client,
+        image_id: str,
+    ) -> T.Optional["Image"]:
+        """
+        TODO: docstring
+        """
+        return cls.query(
+            ec2_client=ec2_client,
+            image_ids=[image_id],
+        ).one_or_none()
+
+    @classmethod
+    def from_tag_key_value(
+        cls,
+        ec2_client,
+        key: str,
+        value: T.Union[str, T.Iterable[str]],
+    ) -> "ImageIterProxy":
+        """
+        TODO: docstring
+        """
+        if isinstance(value, str):
+            values = [value]
+        else:
+            values = list(value)
+        return cls.query(
+            ec2_client=ec2_client,
+            filters=[
+                dict(Name=f"tag:{key}", Values=values),
+            ],
+        )
+
+    @classmethod
+    def from_image_name(
+        cls,
+        ec2_client,
+        name: T.Union[str, T.Iterable[str]],
+    ) -> "ImageIterProxy":
+        """
+        Get image details by the name of the AMI (provided during image creation).
+        This name is not the ``tag:name``
+        """
+        if isinstance(name, str):
+            names = [name]
+        else:
+            names = name
+        return cls.query(
+            ec2_client=ec2_client,
+            filters=[
+                dict(Name="name", Values=names),
+            ],
+        )
 
 
 class ImageIterProxy(IterProxy[Image]):
