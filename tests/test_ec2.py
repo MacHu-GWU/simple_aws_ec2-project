@@ -5,7 +5,12 @@ import pytest
 import moto
 from boto_session_manager import BotoSesManager
 
-from simple_aws_ec2.ec2 import Ec2Instance, Image, ImageOwnerGroupEnum
+from simple_aws_ec2.ec2 import (
+    Ec2Instance,
+    Image,
+    ImageOwnerGroupEnum,
+    ImageOSTypeEnum,
+)
 
 
 class TestEc2:
@@ -181,6 +186,12 @@ class TestEc2:
             image = image_list[0]
             assert image.id == self.image_id_1
             assert image.tags["Env"] == "dev"
+
+        image = Image.from_id(self.bsm.ec2_client, self.image_id_1)
+        image.name = "ubuntu"
+        image.description = "Ubuntu"
+        assert image.os_type is ImageOSTypeEnum.Ubuntu
+        assert "ubuntu" in image.users
 
     def test(self):
         self._test_ec2()

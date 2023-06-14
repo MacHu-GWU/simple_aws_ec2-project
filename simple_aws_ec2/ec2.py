@@ -7,9 +7,20 @@ Abstract dataclass for EC2 instance.
 import typing as T
 import enum
 import dataclasses
+from datetime import datetime
 from urllib import request
+
 from func_args import resolve_kwargs, NOTHING
 from iterproxy import IterProxy
+
+
+class CannotDetectOSTypeError(TypeError):
+    """
+    raised when unable to use the name and description to detect the OS type
+    of the AMI.
+    """
+
+    pass
 
 
 def get_response(url: str) -> str:  # pragma: no cover
@@ -20,7 +31,7 @@ def get_response(url: str) -> str:  # pragma: no cover
         return response.read().decode("utf-8").strip()
 
 
-def get_instance_id() -> str:  # pragma: no cover
+def _get_metadata(name: str) -> str:  # pragma: no cover
     """
     Get the EC2 instance id from the AWS EC2 metadata API.
 
@@ -28,7 +39,7 @@ def get_instance_id() -> str:  # pragma: no cover
 
     - https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html
     """
-    url = "http://169.254.169.254/latest/meta-data/instance-id"
+    url = f"http://169.254.169.254/latest/meta-data/{name}"
     return get_response(url).strip()
 
 
@@ -76,6 +87,7 @@ class Ec2Instance:
 
     id: str = dataclasses.field()
     status: str = dataclasses.field()
+    status_transition_reason: T.Optional[str] = dataclasses.field(default=None)
     public_ip: T.Optional[str] = dataclasses.field(default=None)
     private_ip: T.Optional[str] = dataclasses.field(default=None)
     public_dns_name: T.Optional[str] = dataclasses.field(default=None)
@@ -84,10 +96,27 @@ class Ec2Instance:
     subnet_id: T.Optional[str] = dataclasses.field(default=None)
     security_groups: T.List[T.Dict[str, str]] = dataclasses.field(default_factory=list)
     image_id: T.Optional[str] = dataclasses.field(default=None)
+    platform: T.Optional[str] = dataclasses.field(default=None)
+    platform_details: T.Optional[str] = dataclasses.field(default=None)
     instance_type: T.Optional[str] = dataclasses.field(default=None)
+    launch_time: T.Optional[datetime] = dataclasses.field(default=None)
     key_name: T.Optional[str] = dataclasses.field(default=None)
     architecture: T.Optional[str] = dataclasses.field(default=None)
+    ebs_optimized: T.Optional[bool] = dataclasses.field(default=None)
+    ena_support: T.Optional[bool] = dataclasses.field(default=None)
     hypervisor: T.Optional[str] = dataclasses.field(default=None)
+    iam_instance_profile_arn: T.Optional[str] = dataclasses.field(default=None)
+    iam_instance_profile_id: T.Optional[str] = dataclasses.field(default=None)
+    instance_lifecycle: T.Optional[str] = dataclasses.field(default=None)
+    root_device_name: T.Optional[str] = dataclasses.field(default=None)
+    root_device_type: T.Optional[str] = dataclasses.field(default=None)
+    spot_instance_request_id: T.Optional[str] = dataclasses.field(default=None)
+    sriov_net_support: T.Optional[str] = dataclasses.field(default=None)
+    virtualization_type: T.Optional[str] = dataclasses.field(default=None)
+    boot_mode: T.Optional[str] = dataclasses.field(default=None)
+    usage_operation: T.Optional[str] = dataclasses.field(default=None)
+    usage_operation_update_time: T.Optional[datetime] = dataclasses.field(default=None)
+    current_instance_boot_mode: T.Optional[str] = dataclasses.field(default=None)
     ipv6_address: T.Optional[str] = dataclasses.field(default=None)
     tags: T.Dict[str, str] = dataclasses.field(default_factory=dict)
     data: T.Dict[str, T.Any] = dataclasses.field(default_factory=dict)
@@ -104,6 +133,7 @@ class Ec2Instance:
         return cls(
             id=dct["InstanceId"],
             status=dct["State"]["Name"],
+            status_transition_reason=dct.get("StateTransitionReason"),
             public_ip=dct.get("PublicIpAddress"),
             private_ip=dct.get("PrivateIpAddress"),
             public_dns_name=dct.get("PublicDnsName"),
@@ -112,10 +142,27 @@ class Ec2Instance:
             subnet_id=dct.get("SubnetId"),
             security_groups=dct.get("SecurityGroups", []),
             image_id=dct.get("ImageId"),
+            platform=dct.get("Platform"),
+            platform_details=dct.get("PlatformDetails"),
             instance_type=dct.get("InstanceType"),
+            launch_time=dct.get("LaunchTime"),
             key_name=dct.get("KeyName"),
             architecture=dct.get("Architecture"),
+            ebs_optimized=dct.get("EbsOptimized"),
+            ena_support=dct.get("EnaSupport"),
             hypervisor=dct.get("Hypervisor"),
+            iam_instance_profile_arn=dct.get("IamInstanceProfile", {}).get("Arn"),
+            iam_instance_profile_id=dct.get("IamInstanceProfile", {}).get("Id"),
+            instance_lifecycle=dct.get("InstanceLifecycle"),
+            root_device_name=dct.get("RootDeviceName"),
+            root_device_type=dct.get("RootDeviceType"),
+            spot_instance_request_id=dct.get("SpotInstanceRequestId"),
+            sriov_net_support=dct.get("SriovNetSupport"),
+            virtualization_type=dct.get("VirtualizationType"),
+            boot_mode=dct.get("BootMode"),
+            usage_operation=dct.get("UsageOperation"),
+            usage_operation_update_time=dct.get("UsageOperationUpdateTime"),
+            current_instance_boot_mode=dct.get("CurrentInstanceBootMode"),
             ipv6_address=dct.get("Ipv6Address"),
             tags={kv["Key"]: kv["Value"] for kv in dct.get("Tags", [])},
             data=dct,
@@ -146,22 +193,30 @@ class Ec2Instance:
         return self.status == EC2InstanceStatusEnum.stopped.value
 
     def is_ready_to_stop(self) -> bool:
-        """ """
+        """
+        Check if EC2 instance is ready to stop.
+        """
         return self.is_running() is True
 
     def is_ready_to_start(self) -> bool:
-        """ """
+        """
+        Check if EC2 instance is ready to start.
+        """
         return self.is_stopped() is True
 
     def start_instance(self, ec2_client):
-        """ """
+        """
+        Start instance.
+        """
         return ec2_client.start_instances(
             InstanceIds=[self.id],
             DryRun=False,
         )
 
     def stop_instance(self, ec2_client):
-        """ """
+        """
+        Stop instance.
+        """
         return ec2_client.stop_instances(
             InstanceIds=[self.id],
             DryRun=False,
@@ -213,7 +268,7 @@ class Ec2Instance:
     @classmethod
     def from_id(cls, ec2_client, inst_id: str) -> T.Optional["Ec2Instance"]:
         """
-        TODO: docstring
+        Get ec2 instance details by it's id.
         """
         return cls.query(
             ec2_client=ec2_client,
@@ -226,9 +281,13 @@ class Ec2Instance:
         ec2_client,
     ) -> T.Optional["Ec2Instance"]:  # pragma: no cover
         """
-        TODO: docstring
+        Use ec2 metadata API to get the instance id.
+
+        .. note::
+
+            This function should only be called on an EC2 instance
         """
-        instance_id = get_instance_id()
+        instance_id = cls.get_instance_id()
         return cls.query(
             ec2_client=ec2_client,
             instance_ids=[instance_id],
@@ -274,6 +333,42 @@ class Ec2Instance:
                 dict(Name=f"tag:Name", Values=names),
             ],
         )
+
+    # --------------------------------------------------------------------------
+    # Retrieve instance metadata
+    # these methods should only be used within EC2 instance
+    # --------------------------------------------------------------------------
+    @classmethod
+    def get_ami_id(cls) -> str:  # pragma: no cover
+        return _get_metadata(name="ami-id")
+
+    @classmethod
+    def get_instance_id(cls) -> str:  # pragma: no cover
+        return _get_metadata(name="instance-id")
+
+    @classmethod
+    def get_instance_type(cls) -> str:  # pragma: no cover
+        return _get_metadata(name="instance-type")
+
+    @classmethod
+    def get_local_hostname(cls) -> str:  # pragma: no cover
+        return _get_metadata(name="local-hostname")
+
+    @classmethod
+    def get_local_ipv4(cls) -> str:  # pragma: no cover
+        return _get_metadata(name="local-ipv4")
+
+    @classmethod
+    def get_public_hostname(cls) -> str:  # pragma: no cover
+        return _get_metadata(name="public-hostname")
+
+    @classmethod
+    def get_public_ipv4(cls) -> str:  # pragma: no cover
+        return _get_metadata(name="public-ipv4")
+
+    @classmethod
+    def get_security_groups(cls) -> T.List[str]:  # pragma: no cover
+        return _get_metadata(name="security-groups").splitlines()
 
 
 class Ec2InstanceIterProxy(IterProxy[Ec2Instance]):
@@ -325,8 +420,49 @@ class ImageOwnerGroupEnum(str, enum.Enum):
     aws_marketplace = "aws-marketplace"
 
 
+type_to_users: T.Dict[str, T.List[str]] = {
+    "AmazonLinux": ["ec2-user"],
+    "CentOS": ["centos", "ec2-user"],
+    "Debian": ["admin"],
+    "Fedora": ["fedora", "ec2-user"],
+    "RHEL": ["ec2-user", "root"],
+    "SUSE": ["ec2-user", "root"],
+    "Ubuntu": ["ubuntu"],
+    "Oracle": ["ec2-user"],
+    "Bitnami": ["bitnami"],
+    "Other": ["unknown"],
+}
+
+
+class ImageOSTypeEnum(str, enum.Enum):
+    """
+    Reference:
+
+    - Default user name for AMI: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/connection-prereqs.html#connection-prereqs-get-info-about-instance
+    """
+
+    AmazonLinux = "AmazonLinux"
+    CentOS = "CentOS"
+    Debian = "Debian"
+    Fedora = "Fedora"
+    RHEL = "RHEL"
+    SUSE = "SUSE"
+    Ubuntu = "Ubuntu"
+    Oracle = "Oracle"
+    Bitnami = "Bitnami"
+    Other = "Other"
+
+    @property
+    def users(self) -> T.List[str]:
+        return type_to_users[self.value]
+
+
 @dataclasses.dataclass
 class Image:
+    """
+    Represent an AMI image.
+    """
+
     id: str = dataclasses.field()
     image_location: T.Optional[str] = dataclasses.field(default=None)
     image_type: T.Optional[str] = dataclasses.field(default=None)
@@ -361,7 +497,7 @@ class Image:
     @classmethod
     def from_dict(cls, dct: dict) -> "Image":
         """
-        Create an EC2 instance object from the ``describe_instances`` API response.
+        Create an AMI Image object from the ``describe_images`` API response.
 
         Ref:
 
@@ -446,8 +582,6 @@ class Image:
     def image_root_device_type_is_instance_store(self) -> bool:
         return self.root_device_type == ImageRootDeviceTypeEnum.instance_store.value
 
-    # class ImageVirtualizationTypeEnum(str, enum.Enum):
-
     def image_virtualization_type_is_hvm(self) -> bool:
         return self.virtualization_type == ImageVirtualizationTypeEnum.hvm.value
 
@@ -462,6 +596,101 @@ class Image:
 
     def image_boot_mode_is_uefi_preferred(self) -> bool:
         return self.boot_mode == ImageBootModeEnum.uefi_preferred.value
+
+    @property
+    def os_type(self) -> ImageOSTypeEnum:  # pragma: no cover
+        """
+        Try to use the image name and description to determine the OS type.
+
+        If the OS type cannot be determined, raise :class:`CannotDetectOSTypeError`.
+        """
+        if self.name.startswith("al"):
+            if self.description is not None:
+                if self.description.startswith("Amazon Linux"):
+                    return ImageOSTypeEnum.AmazonLinux
+        elif self.name.startswith("ubuntu"):
+            if self.description is not None:
+                if "Ubuntu" in self.description:
+                    return ImageOSTypeEnum.Ubuntu
+        elif self.name.startswith("RHEL"):
+            if self.description is not None:
+                if self.description.startswith("RHEL"):
+                    return ImageOSTypeEnum.RHEL
+        elif self.name.startswith("debian"):
+            if self.description is not None:
+                if self.description.startswith("Debian"):
+                    return ImageOSTypeEnum.Debian
+        elif self.name.startswith("suse"):
+            if self.description is not None:
+                if self.description.startswith("SUSE"):
+                    return ImageOSTypeEnum.SUSE
+        elif "fedora" in self.name.lower():
+            if self.description is not None:
+                if "fedora" in self.description.lower():
+                    return ImageOSTypeEnum.Fedora
+        elif "centos" in self.name.lower():
+            if self.description is not None:
+                if "centos" in self.description.lower():
+                    return ImageOSTypeEnum.CentOS
+        elif "oracle" in self.name.lower():
+            if self.description is not None:
+                if "oracle" in self.description.lower():
+                    return ImageOSTypeEnum.Oracle
+        elif "bitnami" in self.name.lower():
+            if self.description is not None:
+                if "bitnami" in self.description.lower():
+                    return ImageOSTypeEnum.Bitnami
+        else:
+            raise CannotDetectOSTypeError
+
+    def is_amazon_linux_os(self) -> bool:  # pragma: no cover
+        """"""
+        return self.os_type is ImageOSTypeEnum.AmazonLinux
+
+    def is_cent_os_os(self) -> bool:  # pragma: no cover
+        """"""
+        return self.os_type is ImageOSTypeEnum.CentOS
+
+    def is_debian_os(self) -> bool:  # pragma: no cover
+        """"""
+        return self.os_type is ImageOSTypeEnum.Debian
+
+    def is_fedora_os(self) -> bool:  # pragma: no cover
+        """"""
+        return self.os_type is ImageOSTypeEnum.Fedora
+
+    def is_rhel_os(self) -> bool:  # pragma: no cover
+        """"""
+        return self.os_type is ImageOSTypeEnum.RHEL
+
+    def is_suse_os(self) -> bool:  # pragma: no cover
+        """"""
+        return self.os_type is ImageOSTypeEnum.SUSE
+
+    def is_ubuntu_os(self) -> bool:  # pragma: no cover
+        """"""
+        return self.os_type is ImageOSTypeEnum.Ubuntu
+
+    def is_oracle_os(self) -> bool:  # pragma: no cover
+        """"""
+        return self.os_type is ImageOSTypeEnum.Oracle
+
+    def is_bitnami_os(self) -> bool:  # pragma: no cover
+        """"""
+        return self.os_type is ImageOSTypeEnum.Bitnami
+
+    def is_other_os(self) -> bool:  # pragma: no cover
+        """"""
+        return self.os_type is ImageOSTypeEnum.Other
+
+    @property
+    def users(self) -> T.List[str]:
+        """
+        Return the potential default user names for the Image. It try to use
+        the image name and description to determine the OS type.
+        If the OS type cannot be determined, raise :class:`CannotDetectOSTypeError`.
+        """
+        return self.os_type.users
 
     # --------------------------------------------------------------------------
     # more constructor methods
@@ -567,6 +796,21 @@ class Image:
                 dict(Name="name", Values=names),
             ],
         )
+
+    @classmethod
+    def from_ec2_inside(
+        cls,
+        ec2_client,
+    ) -> T.Optional["Image"]:  # pragma: no cover
+        """
+        Use ec2 metadata API to get the instance id, then get the image details
+
+        .. note::
+
+            This function should only be called on an EC2 instance
+        """
+        ec2_inst = Ec2Instance.from_ec2_inside(ec2_client=ec2_client)
+        return cls.from_id(ec2_client=ec2_client, image_id=ec2_inst.image_id)
 
 
 class ImageIterProxy(IterProxy[Image]):
