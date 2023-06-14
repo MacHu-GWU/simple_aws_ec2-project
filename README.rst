@@ -54,6 +54,9 @@
 
 Welcome to ``simple_aws_ec2`` Documentation
 ==============================================================================
+Simple AWS EC2 dev tool.
+
+Requires Python3.7+
 
 Usage:
 
