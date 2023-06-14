@@ -15,6 +15,15 @@ Backlog (TODO)
 **Miscellaneous**
 
 
+0.3.1 (2023-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Features and Improvements**
+
+- add lots of EC2 instance attributes
+- add helper methods to call EC2 metadata API from EC2 instance inside.
+- add method :meth:`~simple_aws_ec2.ec2.Image.os_type` to guess the AMI OS type, and then get the user name.
+
+
 0.2.1 (2023-06-14)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Breaking change**
@@ -28,10 +37,6 @@ Backlog (TODO)
 **Minor Improvements**
 
 - :meth`~simple_aws_ec2.ec2.Ec2Instance.from_tag_key_value` now take list of values.
-
-**Bugfixes**
-
-**Miscellaneous**
 
 
 0.1.4 (2023-05-06)

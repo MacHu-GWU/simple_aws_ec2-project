@@ -301,7 +301,10 @@ class Ec2Instance:
         value: T.Union[str, T.Iterable[str]],
     ) -> "Ec2InstanceIterProxy":
         """
-        TODO: docstring
+        Query EC2 Instance by tag key and values.
+
+        :param key: tag key
+        :param value: tag value or values
         """
         if isinstance(value, str):
             values = [value]
@@ -763,7 +766,10 @@ class Image:
         value: T.Union[str, T.Iterable[str]],
     ) -> "ImageIterProxy":
         """
-        TODO: docstring
+        Query AMI Image by tag key and values.
+
+        :param key: tag key
+        :param value: tag value or values
         """
         if isinstance(value, str):
             values = [value]

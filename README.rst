@@ -59,20 +59,20 @@ Usage:
 
 .. code-block:: python
 
-    from simple_aws_ec2 import Ec2Instance
-    from boto_session_manager import BotoSesManager
+    import boto3
+    from simple_aws_ec2.api import Ec2Instance, Image
 
-    bsm = BotoSesManager()
+    ec2_client = boto3.client("ec2")
 
     # get ec2 by id
-    ec2_inst = Ec2Instance.from_id(bsm, "i-1a2b3c")
+    ec2_inst = Ec2Instance.from_id(ec2_client, "i-1a2b3c")
     # get ec2 by running code from inside of ec2
-    ec2_inst = EC2Instance.from_ec2_inside(bsm)
+    ec2_inst = EC2Instance.from_ec2_inside(ec2_client)
     # get ec2 by it's name, it returns a iter proxy that may have multiple ec2
-    ec2_inst = EC2Instance.from_ec2_name(bsm, "my-server").one_or_none()
+    ec2_inst = EC2Instance.from_ec2_name(ec2_client, "my-server").one_or_none()
     # get ec2 by tag key value pair, it returns a iter proxy that may have multiple ec2
-    ec2_inst = EC2Instance.from_tag_key_value(bsm, key="Env", value="prod").one_or_none()
-    ec2_inst = EC2Instance.query(bsm, filters=..., instnace_ids=...).all()
+    ec2_inst = EC2Instance.from_tag_key_value(ec2_client, key="Env", value="prod").one_or_none()
+    ec2_inst = EC2Instance.query(ec2_client, filters=..., instnace_ids=...).all()
 
     print(ec2_inst.id)
     print(ec2_inst.status)
@@ -96,6 +96,48 @@ Usage:
 
     print(ec2_inst.is_ready_to_start()
     print(ec2_inst.is_ready_to_stop()
+
+    # the following methods has to be called on a running ec2 instance
+    # it use the EC2 metadata api
+    # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html
+    print(EC2Instance.get_ami_id())
+    print(EC2Instance.get_instance_id())
+    print(EC2Instance.get_instance_type())
+    print(EC2Instance.get_local_hostname())
+    print(EC2Instance.get_local_ipv4())
+    print(EC2Instance.get_public_hostname())
+    print(EC2Instance.get_public_ipv4())
+    print(EC2Instance.get_security_groups()
+
+    # AMI Image API
+    image = Image.from_id(ec2_client, "ami-1a2b3c")
+    image = Image.from_ec2_inside(ec2_client)
+
+    image_list = Image.query(ec2_client).all()
+
+    image_list = Image.query(ec2_client, owners=["self"]).all()
+
+    print(image.image_type_is_machine())
+    print(image.image_type_is_kernel())
+    print(image.image_type_is_ramdisk())
+    print(image.is_pending())
+    print(image.is_available())
+    print(image.is_invalid())
+    print(image.is_deregistered())
+    print(image.is_transient())
+    print(image.is_failed())
+    print(image.is_error())
+    print(image.image_root_device_type_is_ebs())
+    print(image.image_root_device_type_is_instance_store())
+    print(image.image_virtualization_type_is_hvm())
+    print(image.image_virtualization_type_is_paravirtual())
+    print(image.image_boot_mode_is_legacy_bios())
+    print(image.image_boot_mode_is_uefi())
+    print(image.image_boot_mode_is_uefi_preferred())
+
+    image = Image.from_image_name(ec2_client, "my-image").all()
+
+    image_list = Image.from_tag_key_value(ec2_client, key="Env", value="dev").all()
 
 
 .. _install:
