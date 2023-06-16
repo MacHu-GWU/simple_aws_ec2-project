@@ -6,6 +6,8 @@ import moto
 from boto_session_manager import BotoSesManager
 
 from simple_aws_ec2.ec2 import (
+    StatusError,
+    EC2InstanceStatusEnum,
     Ec2Instance,
     Image,
     ImageOwnerGroupEnum,
@@ -193,9 +195,37 @@ class TestEc2:
         assert image.os_type is ImageOSTypeEnum.Ubuntu
         assert "ubuntu" in image.users
 
+    def _test_wait_for_status(self):
+        ec2_inst = Ec2Instance.from_id(self.bsm.ec2_client, self.inst_id_1)
+        assert ec2_inst.is_running() is True
+        with pytest.raises(StatusError):
+            ec2_inst.wait_for_stopped(
+                ec2_client=self.bsm.ec2_client,
+                verbose=False,
+            )
+        with pytest.raises(StatusError):
+            ec2_inst.wait_for_terminated(
+                ec2_client=self.bsm.ec2_client,
+                verbose=False,
+            )
+
+        ec2_inst.stop_instance(self.bsm.ec2_client)
+        new_ec2_inst = ec2_inst.wait_for_status(
+            ec2_client=self.bsm.ec2_client,
+            stop_status=EC2InstanceStatusEnum.stopped,
+            verbose=False,
+        )
+        assert new_ec2_inst.is_stopped() is True
+        with pytest.raises(StatusError):
+            new_ec2_inst.wait_for_running(
+                ec2_client=self.bsm.ec2_client,
+                verbose=False,
+            )
+
     def test(self):
         self._test_ec2()
         self._test_ec2_start_and_stop()
+        self._test_wait_for_status()
         self._test_image()
 
 

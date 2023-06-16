@@ -2,12 +2,10 @@
 # for more info: https://coverage.readthedocs.io/en/latest/config.html
 [run]
 omit =
-    simple_aws_ec2/_version.py
-    simple_aws_ec2/cli.py
-    simple_aws_ec2/pkg/*
     simple_aws_ec2/docs/*
     simple_aws_ec2/tests/*
-    simple_aws_ec2/handlers/*
+    simple_aws_ec2/vendor/*
+    simple_aws_ec2/_version.py
 
 [report]
 # Regexes for lines to exclude from consideration

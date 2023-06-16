@@ -13,6 +13,9 @@ from urllib import request
 from func_args import resolve_kwargs, NOTHING
 from iterproxy import IterProxy
 
+from .vendor.waiter import Waiter
+from .exc import StatusError
+
 
 class CannotDetectOSTypeError(TypeError):
     """
@@ -220,6 +223,143 @@ class Ec2Instance:
         return ec2_client.stop_instances(
             InstanceIds=[self.id],
             DryRun=False,
+        )
+
+
+    # --------------------------------------------------------------------------
+    # Waiter
+    # --------------------------------------------------------------------------
+    def wait_for_status(
+        self,
+        ec2_client,
+        stop_status: T.Union[EC2InstanceStatusEnum, T.List[EC2InstanceStatusEnum]],
+        delays: T.Union[int, float] = 10,
+        timeout: T.Union[int, float] = 300,
+        error_status: T.Optional[
+            T.Union[EC2InstanceStatusEnum, T.List[EC2InstanceStatusEnum]]
+        ] = None,
+        indent: int = 0,
+        verbose: bool = True,
+    ) -> "Ec2Instance":  # pragma: no cover
+        """
+        wait until the EC2 instance reaches the specified status defined in
+        ``stop_status``. If reaches any of ``error_status ``, raise error.
+
+        :param ec2_client:
+        :param stop_status: status to stop waiting
+        :param delays: delay between each check
+        :param timeout: timeout in seconds
+        :param error_status: status to raise error
+        :param indent: indent level for logging
+        :param verbose: whether to print log
+
+        :return: the :class:`Ec2Instance` representing the latest status
+            of DB instance.
+        """
+        if isinstance(stop_status, EC2InstanceStatusEnum):
+            stop_status_set = {stop_status.value}
+        else:
+            stop_status_set = {status.value for status in EC2InstanceStatusEnum}
+        if error_status is None:
+            error_status_set = set()
+        elif isinstance(error_status, EC2InstanceStatusEnum):
+            error_status_set = {error_status.value}
+        else:
+            error_status_set = {status.value for status in EC2InstanceStatusEnum}
+
+        for attempt, elapse in Waiter(
+            delays=delays,
+            timeout=timeout,
+            indent=indent,
+            verbose=verbose,
+        ):
+            ec2_inst = self.from_id(ec2_client, self.id)
+            if ec2_inst.status in stop_status_set:
+                return ec2_inst
+            elif ec2_inst.status in error_status_set:
+                raise StatusError(f"stop because status reaches {ec2_inst.status!r}")
+            else:
+                pass
+
+    def wait_for_running(
+        self,
+        ec2_client,
+        delays: T.Union[int, float] = 10,
+        timeout: T.Union[int, float] = 300,
+        indent: int = 0,
+        verbose: bool = True,
+    ) -> "Ec2Instance":  # pragma: no cover
+        """
+        Similar to :meth:`Ec2Instance.wait_for_status`, but wait for
+        EC2 instance to reach "running" status.
+        """
+        return self.wait_for_status(
+            ec2_client=ec2_client,
+            stop_status=EC2InstanceStatusEnum.running,
+            delays=delays,
+            timeout=timeout,
+            error_status=[
+                EC2InstanceStatusEnum.shutting_down,
+                EC2InstanceStatusEnum.terminated,
+                EC2InstanceStatusEnum.stopping,
+                EC2InstanceStatusEnum.stopped,
+            ],
+            indent=indent,
+            verbose=verbose,
+        )
+
+    def wait_for_stopped(
+        self,
+        ec2_client,
+        delays: T.Union[int, float] = 10,
+        timeout: T.Union[int, float] = 300,
+        indent: int = 0,
+        verbose: bool = True,
+    ) -> "Ec2Instance":  # pragma: no cover
+        """
+        Similar to :meth:`Ec2Instance.wait_for_status`, but wait for
+        EC2 instance to reach "stopped" status.
+        """
+        return self.wait_for_status(
+            ec2_client=ec2_client,
+            stop_status=EC2InstanceStatusEnum.stopped,
+            delays=delays,
+            timeout=timeout,
+            error_status=[
+                EC2InstanceStatusEnum.pending,
+                EC2InstanceStatusEnum.running,
+                EC2InstanceStatusEnum.shutting_down,
+                EC2InstanceStatusEnum.terminated,
+            ],
+            indent=indent,
+            verbose=verbose,
+        )
+
+    def wait_for_terminated(
+        self,
+        ec2_client,
+        delays: T.Union[int, float] = 10,
+        timeout: T.Union[int, float] = 300,
+        indent: int = 0,
+        verbose: bool = True,
+    ) -> "Ec2Instance":  # pragma: no cover
+        """
+        Similar to :meth:`Ec2Instance.wait_for_status`, but wait for
+        EC2 instance to reach "terminated" status.
+        """
+        return self.wait_for_status(
+            ec2_client=ec2_client,
+            stop_status=EC2InstanceStatusEnum.terminated,
+            delays=delays,
+            timeout=timeout,
+            error_status=[
+                EC2InstanceStatusEnum.pending,
+                EC2InstanceStatusEnum.running,
+                EC2InstanceStatusEnum.stopping,
+                EC2InstanceStatusEnum.stopped,
+            ],
+            indent=indent,
+            verbose=verbose,
         )
 
     # --------------------------------------------------------------------------
