@@ -15,6 +15,16 @@ Backlog (TODO)
 **Miscellaneous**
 
 
+0.4.1 (2023-06-15)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Features and Improvements**
+
+- add :meth:`~simple_aws_ec2.ec2.Ec2Instance.wait_for_status` waiter method.
+- add :meth:`~simple_aws_ec2.ec2.Ec2Instance.wait_for_running` waiter method.
+- add :meth:`~simple_aws_ec2.ec2.Ec2Instance.wait_for_stopped` waiter method.
+- add :meth:`~simple_aws_ec2.ec2.Ec2Instance.wait_for_terminated` waiter method.
+
+
 0.3.2 (2023-06-14)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Bugfixes**

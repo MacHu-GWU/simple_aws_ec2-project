@@ -20,20 +20,19 @@ Public API.
 - :class:`~simple_aws_ec2.ec2.ImageIterProxy`
 """
 
-from .ec2 import (
-    CannotDetectOSTypeError,
-    EC2InstanceStatusEnum,
-    EC2InstanceArchitectureEnum,
-    Ec2InstanceHypervisorEnum,
-    Ec2Instance,
-    Ec2InstanceIterProxy,
-    ImageTypeEnum,
-    ImageStateEnum,
-    ImageRootDeviceTypeEnum,
-    ImageVirtualizationTypeEnum,
-    ImageBootModeEnum,
-    ImageOwnerGroupEnum,
-    ImageOSTypeEnum,
-    Image,
-    ImageIterProxy,
-)
+from .ec2 import CannotDetectOSTypeError
+from .ec2 import EC2InstanceStatusEnum
+from .ec2 import EC2InstanceStatusGroupEnum
+from .ec2 import EC2InstanceArchitectureEnum
+from .ec2 import Ec2InstanceHypervisorEnum
+from .ec2 import Ec2Instance
+from .ec2 import Ec2InstanceIterProxy
+from .ec2 import ImageTypeEnum
+from .ec2 import ImageStateEnum
+from .ec2 import ImageRootDeviceTypeEnum
+from .ec2 import ImageVirtualizationTypeEnum
+from .ec2 import ImageBootModeEnum
+from .ec2 import ImageOwnerGroupEnum
+from .ec2 import ImageOSTypeEnum
+from .ec2 import Image
+from .ec2 import ImageIterProxy

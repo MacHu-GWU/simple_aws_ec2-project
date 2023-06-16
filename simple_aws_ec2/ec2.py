@@ -61,6 +61,23 @@ class EC2InstanceStatusEnum(str, enum.Enum):
     stopped = "stopped"
 
 
+T_STATUS_ENUM_SET = T.Set[EC2InstanceStatusEnum]
+
+
+class EC2InstanceStatusGroupEnum:
+    ended: T_STATUS_ENUM_SET = {
+        EC2InstanceStatusEnum.running,
+        EC2InstanceStatusEnum.terminated,
+        EC2InstanceStatusEnum.stopped,
+    }
+
+    in_transition: T_STATUS_ENUM_SET = {
+        EC2InstanceStatusEnum.pending,
+        EC2InstanceStatusEnum.shutting_down,
+        EC2InstanceStatusEnum.stopping,
+    }
+
+
 class EC2InstanceArchitectureEnum(str, enum.Enum):
     """
     Ec2 instance architecture enumerations.
@@ -224,7 +241,6 @@ class Ec2Instance:
             InstanceIds=[self.id],
             DryRun=False,
         )
-
 
     # --------------------------------------------------------------------------
     # Waiter
