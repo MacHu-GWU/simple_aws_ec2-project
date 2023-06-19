@@ -35,6 +35,7 @@ def test():
     _ = api.Ec2Instance.is_ready_to_start
     _ = api.Ec2Instance.start_instance
     _ = api.Ec2Instance.stop_instance
+    _ = api.Ec2Instance.terminate_instance
     _ = api.Ec2Instance.wait_for_status
     _ = api.Ec2Instance.wait_for_running
     _ = api.Ec2Instance.wait_for_stopped

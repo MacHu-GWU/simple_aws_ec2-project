@@ -242,6 +242,15 @@ class Ec2Instance:
             DryRun=False,
         )
 
+    def terminate_instance(self, ec2_client):
+        """
+        Terminate instance.
+        """
+        return ec2_client.terminate_instances(
+            InstanceIds=[self.id],
+            DryRun=False,
+        )
+
     # --------------------------------------------------------------------------
     # Waiter
     # --------------------------------------------------------------------------

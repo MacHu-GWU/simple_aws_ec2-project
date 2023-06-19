@@ -222,6 +222,11 @@ class TestEc2:
                 verbose=False,
             )
 
+        new_ec2_inst.terminate_instance(self.bsm.ec2_client)
+        new_ec2_inst = Ec2Instance.from_id(self.bsm.ec2_client, self.inst_id_1)
+        assert new_ec2_inst.is_terminated()
+
+
     def test(self):
         self._test_ec2()
         self._test_ec2_start_and_stop()
