@@ -6,6 +6,7 @@ Abstract dataclass for EC2 instance.
 
 import typing as T
 import enum
+import json
 import dataclasses
 from datetime import datetime
 from urllib import request
@@ -519,6 +520,10 @@ class Ec2Instance:
         return _get_metadata(name="instance-type")
 
     @classmethod
+    def get_hostname(cls) -> str:  # pragma: no cover
+        return _get_metadata(name="hostname")
+
+    @classmethod
     def get_local_hostname(cls) -> str:  # pragma: no cover
         return _get_metadata(name="local-hostname")
 
@@ -537,6 +542,18 @@ class Ec2Instance:
     @classmethod
     def get_security_groups(cls) -> T.List[str]:  # pragma: no cover
         return _get_metadata(name="security-groups").splitlines()
+
+    @classmethod
+    def get_iam_info(cls) -> T.Dict[str, str]:  # pragma: no cover
+        return json.loads(_get_metadata(name="iam/info"))
+
+    @classmethod
+    def get_placement_region(cls) -> str: # pragma: no cover
+        return _get_metadata(name="placement/region")
+
+    @classmethod
+    def get_reservation_id(cls) -> str: # pragma: no cover
+        return _get_metadata(name="reservation-id")
 
 
 class Ec2InstanceIterProxy(IterProxy[Ec2Instance]):
