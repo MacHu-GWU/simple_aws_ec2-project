@@ -36,3 +36,4 @@ from .ec2 import ImageOwnerGroupEnum
 from .ec2 import ImageOSTypeEnum
 from .ec2 import Image
 from .ec2 import ImageIterProxy
+from .ec2_metadata_cache import EC2MetadataCache

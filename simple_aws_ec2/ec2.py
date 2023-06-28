@@ -545,6 +545,18 @@ class Ec2Instance:
 
     @classmethod
     def get_iam_info(cls) -> T.Dict[str, str]:  # pragma: no cover
+        """
+        Example response:
+
+        .. code-block:: python
+
+            {
+                "Code" : "Success",
+                "LastUpdated" : "2023-01-01T00:00:00Z",
+                "InstanceProfileId" : "ABCD..."
+                "InstanceProfileArn" : "arn:aws:iam::111122223333:instance-profile/profile-name",
+            }
+        """
         return json.loads(_get_metadata(name="iam/info"))
 
     @classmethod

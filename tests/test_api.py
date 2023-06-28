@@ -23,6 +23,7 @@ def test():
     _ = api.ImageOSTypeEnum
     _ = api.Image
     _ = api.ImageIterProxy
+    _ = api.EC2MetadataCache
 
     # attribute and method
     _ = api.Ec2Instance.is_pending
