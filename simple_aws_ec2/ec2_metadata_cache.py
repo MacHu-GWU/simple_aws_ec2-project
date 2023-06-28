@@ -88,6 +88,7 @@ class EC2MetadataCache:
             self._instance_id = Ec2Instance.get_instance_id()
             if refresh_cache:
                 self.dump()
+            return self._instance_id
         else:
             return self._instance_id
 
@@ -103,6 +104,7 @@ class EC2MetadataCache:
             self._instance_type = Ec2Instance.get_instance_type()
             if refresh_cache:
                 self.dump()
+            return self._instance_type
         else:
             return self._instance_type
 
@@ -118,6 +120,7 @@ class EC2MetadataCache:
             self._region = Ec2Instance.get_placement_region()
             if refresh_cache:
                 self.dump()
+            return self._region
         else:
             return self._region
 
@@ -133,6 +136,7 @@ class EC2MetadataCache:
             self._public_ipv4 = Ec2Instance.get_public_ipv4()
             if refresh_cache:
                 self.dump()
+            return self._public_ipv4
         else:
             return self._public_ipv4
 
@@ -157,6 +161,7 @@ class EC2MetadataCache:
             self._iam_info = Ec2Instance.get_iam_info()
             if refresh_cache:
                 self.dump()
+            return self._iam_info
         else:
             return self._iam_info
 
