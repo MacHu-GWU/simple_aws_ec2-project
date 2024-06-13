@@ -279,8 +279,7 @@ class Ec2Instance:
         :param indent: indent level for logging
         :param verbose: whether to print log
 
-        :return: the :class:`Ec2Instance` representing the latest status
-            of DB instance.
+        :return: the :class:`Ec2Instance` representing the latest status.
         """
         if isinstance(stop_status, EC2InstanceStatusEnum):
             stop_status_set = {stop_status.value}
@@ -560,11 +559,11 @@ class Ec2Instance:
         return json.loads(_get_metadata(name="iam/info"))
 
     @classmethod
-    def get_placement_region(cls) -> str: # pragma: no cover
+    def get_placement_region(cls) -> str:  # pragma: no cover
         return _get_metadata(name="placement/region")
 
     @classmethod
-    def get_reservation_id(cls) -> str: # pragma: no cover
+    def get_reservation_id(cls) -> str:  # pragma: no cover
         return _get_metadata(name="reservation-id")
 
 
@@ -593,6 +592,7 @@ class ImageStateEnum(str, enum.Enum):
     transient = "transient"
     failed = "failed"
     error = "error"
+    disabled = "disabled"
 
 
 class ImageRootDeviceTypeEnum(str, enum.Enum):
@@ -772,6 +772,10 @@ class Image:
     def is_error(self) -> bool:
         """ """
         return self.state == ImageStateEnum.error.value
+
+    def is_disabled(self) -> bool:
+        """ """
+        return self.state == ImageStateEnum.disabled.value
 
     def image_root_device_type_is_ebs(self) -> bool:
         return self.root_device_type == ImageRootDeviceTypeEnum.ebs.value
@@ -1013,6 +1017,146 @@ class Image:
         """
         ec2_inst = Ec2Instance.from_ec2_inside(ec2_client=ec2_client)
         return cls.from_id(ec2_client=ec2_client, image_id=ec2_inst.image_id)
+
+    def deregister(
+        self,
+        ec2_client,
+        delete_snapshot: bool = False,
+        skip_prompt: bool = False,
+    ):
+        """
+        Deregister this image.
+
+        :param delete_snapshot: if True, also delete the snapshot.
+        :param skip_prompt: by default, it prompts to confirm. You can set it to
+            True, to skip the prompt.
+        """
+        if delete_snapshot:  # pragma: no cover
+            if skip_prompt is False:
+                entered = input(
+                    "Are you sure you also wants to delete the snapshot of the "
+                    f"AMI {self.id}? This cannot be undone! "
+                    f"Enter 'YES' to proceed: "
+                )
+                if entered != "YES":
+                    raise KeyboardInterrupt()
+
+        ec2_client.deregister_image(ImageId=self.id)
+        if delete_snapshot:  # pragma: no cover
+            for dct in self.data.get("BlockDeviceMappings", []):
+                snapshot_id = dct.get("Ebs", {}).get("SnapshotId")
+                if snapshot_id:
+                    ec2_client.delete_snapshot(SnapshotId=snapshot_id)
+
+    # --------------------------------------------------------------------------
+    # Waiter
+    # --------------------------------------------------------------------------
+    def wait_for_status(
+        self,
+        ec2_client,
+        stop_status: T.Union[ImageStateEnum, T.List[ImageStateEnum]],
+        delays: T.Union[int, float] = 10,
+        timeout: T.Union[int, float] = 300,
+        error_status: T.Optional[
+            T.Union[ImageStateEnum, T.List[ImageStateEnum]]
+        ] = None,
+        indent: int = 0,
+        verbose: bool = True,
+    ) -> "Image":  # pragma: no cover
+        """
+        wait until the AMI Image reaches the specified status defined in
+        ``stop_status``. If reaches any of ``error_status ``, raise error.
+
+        :param ec2_client:
+        :param stop_status: status to stop waiting
+        :param delays: delay between each check
+        :param timeout: timeout in seconds
+        :param error_status: status to raise error
+        :param indent: indent level for logging
+        :param verbose: whether to print log
+
+        :return: the :class:`Image` representing the latest status.
+        """
+        if isinstance(stop_status, ImageStateEnum):
+            stop_status_set = {stop_status.value}
+        else:
+            stop_status_set = {status.value for status in ImageStateEnum}
+        if error_status is None:
+            error_status_set = set()
+        elif isinstance(error_status, ImageStateEnum):
+            error_status_set = {error_status.value}
+        else:
+            error_status_set = {status.value for status in ImageStateEnum}
+
+        for attempt, elapse in Waiter(
+            delays=delays,
+            timeout=timeout,
+            indent=indent,
+            verbose=verbose,
+        ):
+            image = self.from_id(ec2_client, self.id)
+            if image.state in stop_status_set:
+                return image
+            elif image.state in error_status_set:
+                raise StatusError(f"stop because status reaches {image.state!r}")
+            else:
+                pass
+
+    def wait_for_available(
+        self,
+        ec2_client,
+        delays: T.Union[int, float] = 10,
+        timeout: T.Union[int, float] = 300,
+        indent: int = 0,
+        verbose: bool = True,
+    ) -> "Image":  # pragma: no cover
+        """
+        Similar to :meth:`Image.wait_for_status`, but wait for
+        AMI to reach "available" status.
+        """
+        return self.wait_for_status(
+            ec2_client=ec2_client,
+            stop_status=ImageStateEnum.available,
+            delays=delays,
+            timeout=timeout,
+            error_status=[
+                ImageStateEnum.invalid,
+                ImageStateEnum.deregistered,
+                ImageStateEnum.failed,
+                ImageStateEnum.error,
+                ImageStateEnum.disabled,
+            ],
+            indent=indent,
+            verbose=verbose,
+        )
+
+    def wait_for_deregistered(
+        self,
+        ec2_client,
+        delays: T.Union[int, float] = 10,
+        timeout: T.Union[int, float] = 300,
+        indent: int = 0,
+        verbose: bool = True,
+    ) -> "Image":  # pragma: no cover
+        """
+        Similar to :meth:`Image.wait_for_status`, but wait for
+        AMI to reach "deregistered" status.
+        """
+        return self.wait_for_status(
+            ec2_client=ec2_client,
+            stop_status=ImageStateEnum.deregistered,
+            delays=delays,
+            timeout=timeout,
+            error_status=[
+                ImageStateEnum.available,
+                ImageStateEnum.invalid,
+                ImageStateEnum.failed,
+                ImageStateEnum.error,
+                ImageStateEnum.disabled,
+            ],
+            indent=indent,
+            verbose=verbose,
+        )
 
 
 class ImageIterProxy(IterProxy[Image]):

@@ -195,7 +195,7 @@ class TestEc2:
         assert image.os_type is ImageOSTypeEnum.Ubuntu
         assert "ubuntu" in image.users
 
-    def _test_wait_for_status(self):
+    def _test_ec2_wait_for_status(self):
         ec2_inst = Ec2Instance.from_id(self.bsm.ec2_client, self.inst_id_1)
         assert ec2_inst.is_running() is True
         with pytest.raises(StatusError):
@@ -226,12 +226,30 @@ class TestEc2:
         new_ec2_inst = Ec2Instance.from_id(self.bsm.ec2_client, self.inst_id_1)
         assert new_ec2_inst.is_terminated()
 
+    def _test_ami_wait_for_status(self):
+        image = Image.from_id(self.bsm.ec2_client, self.image_id_1)
+        assert image.is_available() is True
+
+        image.wait_for_available(
+            ec2_client=self.bsm.ec2_client,
+            verbose=False,
+        )
+        with pytest.raises(StatusError):
+            image.wait_for_deregistered(
+                ec2_client=self.bsm.ec2_client,
+                verbose=False,
+            )
+
+        image.deregister(ec2_client=self.bsm.ec2_client)
+        image = Image.from_id(self.bsm.ec2_client, self.image_id_1)
+        assert image is None
 
     def test(self):
         self._test_ec2()
         self._test_ec2_start_and_stop()
-        self._test_wait_for_status()
+        self._test_ec2_wait_for_status()
         self._test_image()
+        self._test_ami_wait_for_status()
 
 
 if __name__ == "__main__":

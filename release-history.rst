@@ -15,6 +15,18 @@ Backlog (TODO)
 **Miscellaneous**
 
 
+0.7.1 (2024-06-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Features and Improvements**
+
+- add :meth:`~simple_aws_ec2.ec2.Image.wait_for_status` waiter method.
+- add :meth:`~simple_aws_ec2.ec2.Image.wait_for_available` waiter method.
+- add :meth:`~simple_aws_ec2.ec2.Image.wait_for_deregistered` waiter method.
+- add :meth:`~simple_aws_ec2.ec2.Image.is_disabled` method.
+- add :meth:`~simple_aws_ec2.ec2.Image.deregister` method.
+- add ``simple_aws_ec2.ec2.ImageStateEnum.disabled`` status code.
+
+
 0.6.2 (2023-06-28)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Bugfixes**
