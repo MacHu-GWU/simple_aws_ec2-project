@@ -11,7 +11,8 @@ from simple_aws_ec2.ec2_metadata_cache import (
 
 class TestEC2MetadataCache:
     def test(self):
-        path_ec2_metadata_cache_json.unlink(missing_ok=True)
+        if path_ec2_metadata_cache_json.exists():
+            path_ec2_metadata_cache_json.unlink()
 
         ec2_metadata = EC2MetadataCache.load()
         ec2_metadata.dump()
