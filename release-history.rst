@@ -15,6 +15,13 @@ Backlog (TODO)
 **Miscellaneous**
 
 
+0.7.2 (2024.06-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Bugfixes**
+
+- Fix a bug that :meth:`~simple_aws_ec2.ec2.Ec2Instance.wait_for_status` and :meth:`~simple_aws_ec2.ec2.Image.wait_for_status` failed to respect the list of provided ``stop_status`` and ``error_status``.
+
+
 0.7.1 (2024-06-13)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Features and Improvements**

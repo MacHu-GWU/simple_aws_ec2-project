@@ -284,13 +284,13 @@ class Ec2Instance:
         if isinstance(stop_status, EC2InstanceStatusEnum):
             stop_status_set = {stop_status.value}
         else:
-            stop_status_set = {status.value for status in EC2InstanceStatusEnum}
+            stop_status_set = {status.value for status in stop_status}
         if error_status is None:
             error_status_set = set()
         elif isinstance(error_status, EC2InstanceStatusEnum):
             error_status_set = {error_status.value}
         else:
-            error_status_set = {status.value for status in EC2InstanceStatusEnum}
+            error_status_set = {status.value for status in error_status}
 
         for attempt, elapse in Waiter(
             delays=delays,
@@ -1080,13 +1080,13 @@ class Image:
         if isinstance(stop_status, ImageStateEnum):
             stop_status_set = {stop_status.value}
         else:
-            stop_status_set = {status.value for status in ImageStateEnum}
+            stop_status_set = {status.value for status in stop_status}
         if error_status is None:
             error_status_set = set()
         elif isinstance(error_status, ImageStateEnum):
             error_status_set = {error_status.value}
         else:
-            error_status_set = {status.value for status in ImageStateEnum}
+            error_status_set = {status.value for status in error_status}
 
         for attempt, elapse in Waiter(
             delays=delays,
