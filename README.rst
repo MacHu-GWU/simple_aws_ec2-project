@@ -100,6 +100,10 @@ Usage:
     print(ec2_inst.is_ready_to_start()
     print(ec2_inst.is_ready_to_stop()
 
+    ec2_inst.start_instance()
+    ec2_inst.stop_instance()
+    ec2_inst.terminate_instance()
+
     # the following methods has to be called on a running ec2 instance
     # it use the EC2 metadata api
     # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html
@@ -141,6 +145,8 @@ Usage:
     image = Image.from_image_name(ec2_client, "my-image").all()
 
     image_list = Image.from_tag_key_value(ec2_client, key="Env", value="dev").all()
+
+    image.deregister()
 
 
 .. _install:
