@@ -15,7 +15,14 @@ Backlog (TODO)
 **Miscellaneous**
 
 
-0.7.2 (2024.06-13)
+0.7.3 (2024-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Bugfixes**
+
+- Fix a bug that :meth:`~simple_aws_ec2.ec2.Image.deregister` method may fail when trying to delete snapshot immediately. Now it wait for the image got deregistered then start deleting snapshot.
+
+
+0.7.2 (2024-06-13)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Bugfixes**
 

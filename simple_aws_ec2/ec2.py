@@ -11,6 +11,7 @@ import dataclasses
 from datetime import datetime
 from urllib import request
 
+from botocore.exceptions import ClientError
 from func_args import resolve_kwargs, NOTHING
 from iterproxy import IterProxy
 
@@ -895,6 +896,18 @@ class Image:
         """
         return self.os_type.users
 
+    @property
+    def ebs_snapshot_id_list(self) -> T.List[str]:
+        """
+        Get the list of snapshot ids associated with the AMI.
+        """
+        snapshot_id_list = []
+        for dct in self.data.get("BlockDeviceMappings", []):
+            snapshot_id = dct.get("Ebs", {}).get("SnapshotId")
+            if snapshot_id:
+                snapshot_id_list.append(snapshot_id)
+        return snapshot_id_list
+
     # --------------------------------------------------------------------------
     # more constructor methods
     # --------------------------------------------------------------------------
@@ -1023,13 +1036,15 @@ class Image:
         ec2_client,
         delete_snapshot: bool = False,
         skip_prompt: bool = False,
-    ):
+        verbose: bool = False,
+    ) -> T.List[str]:
         """
         Deregister this image.
 
         :param delete_snapshot: if True, also delete the snapshot.
         :param skip_prompt: by default, it prompts to confirm. You can set it to
             True, to skip the prompt.
+        :param verbose: whether to print log
         """
         if delete_snapshot:  # pragma: no cover
             if skip_prompt is False:
@@ -1042,11 +1057,27 @@ class Image:
                     raise KeyboardInterrupt()
 
         ec2_client.deregister_image(ImageId=self.id)
+
+        for attempt, elapse in Waiter(
+            delays=1,
+            timeout=30,
+            verbose=verbose,
+        ):
+            try:
+                images = self.query(ec2_client=ec2_client, image_ids=[self.id]).all()
+                if len(images) == 0:
+                    break
+                if images[0].is_deregistered():
+                    break
+            except ClientError as e:
+                if e.response["Error"]["Code"].startswith("InvalidAMIID"):
+                    break
+                else: # pragma: no cover
+                    raise e
+
         if delete_snapshot:  # pragma: no cover
-            for dct in self.data.get("BlockDeviceMappings", []):
-                snapshot_id = dct.get("Ebs", {}).get("SnapshotId")
-                if snapshot_id:
-                    ec2_client.delete_snapshot(SnapshotId=snapshot_id)
+            for snapshot_id in self.ebs_snapshot_id_list:
+                ec2_client.delete_snapshot(SnapshotId=snapshot_id)
 
     # --------------------------------------------------------------------------
     # Waiter
