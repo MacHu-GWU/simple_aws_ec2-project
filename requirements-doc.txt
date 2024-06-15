@@ -22,3 +22,4 @@ docfly==2.0.3
 # you have to manually do ``pip install -r requirements-furo-sphinx-search.txt``
 # note: you need to install awscli to upload the documentation website to S3
 # awscli has werid dependency issue, so we install it out side of poetry
+boto3
