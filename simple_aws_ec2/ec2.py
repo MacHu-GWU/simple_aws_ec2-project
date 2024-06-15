@@ -18,6 +18,9 @@ from iterproxy import IterProxy
 from .vendor.waiter import Waiter
 from .exc import StatusError
 
+if T.TYPE_CHECKING:  # pragma: no cover
+    from mypy_boto3_ec2.client import EC2Client
+
 
 class CannotDetectOSTypeError(TypeError):
     """
@@ -67,6 +70,13 @@ T_STATUS_ENUM_SET = T.Set[EC2InstanceStatusEnum]
 
 
 class EC2InstanceStatusGroupEnum:
+    """
+    Aggregate EC2 instance status into logical groups.
+
+    :var ended: status won't change anymore
+    :var in_transition: status is in transition
+    """
+
     ended: T_STATUS_ENUM_SET = {
         EC2InstanceStatusEnum.running,
         EC2InstanceStatusEnum.terminated,
@@ -144,7 +154,7 @@ class Ec2Instance:
     data: T.Dict[str, T.Any] = dataclasses.field(default_factory=dict)
 
     @classmethod
-    def from_dict(cls, dct: dict) -> "Ec2Instance":
+    def from_dict(cls, dct: dict):
         """
         Create an EC2 instance object from the ``describe_instances`` API response.
 
@@ -191,27 +201,39 @@ class Ec2Instance:
         )
 
     def is_pending(self) -> bool:
-        """ """
+        """
+        Check if EC2 instance is pending.
+        """
         return self.status == EC2InstanceStatusEnum.pending.value
 
     def is_running(self) -> bool:
-        """ """
+        """
+        Check if EC2 instance is running.
+        """
         return self.status == EC2InstanceStatusEnum.running.value
 
     def is_shutting_down(self) -> bool:
-        """ """
+        """
+        Check if EC2 instance is shutting down.
+        """
         return self.status == EC2InstanceStatusEnum.shutting_down.value
 
     def is_terminated(self) -> bool:
-        """ """
+        """
+        Check if EC2 instance is terminated.
+        """
         return self.status == EC2InstanceStatusEnum.terminated.value
 
     def is_stopping(self) -> bool:
-        """ """
+        """
+        Check if EC2 instance is stopping.
+        """
         return self.status == EC2InstanceStatusEnum.stopping.value
 
     def is_stopped(self) -> bool:
-        """ """
+        """
+        Check if EC2 instance is stopped.
+        """
         return self.status == EC2InstanceStatusEnum.stopped.value
 
     def is_ready_to_stop(self) -> bool:
@@ -226,7 +248,7 @@ class Ec2Instance:
         """
         return self.is_stopped() is True
 
-    def start_instance(self, ec2_client):
+    def start_instance(self, ec2_client: "EC2Client"):
         """
         Start instance.
         """
@@ -235,7 +257,7 @@ class Ec2Instance:
             DryRun=False,
         )
 
-    def stop_instance(self, ec2_client):
+    def stop_instance(self, ec2_client: "EC2Client"):
         """
         Stop instance.
         """
@@ -244,7 +266,7 @@ class Ec2Instance:
             DryRun=False,
         )
 
-    def terminate_instance(self, ec2_client):
+    def terminate_instance(self, ec2_client: "EC2Client"):
         """
         Terminate instance.
         """
@@ -258,7 +280,7 @@ class Ec2Instance:
     # --------------------------------------------------------------------------
     def wait_for_status(
         self,
-        ec2_client,
+        ec2_client: "EC2Client",
         stop_status: T.Union[EC2InstanceStatusEnum, T.List[EC2InstanceStatusEnum]],
         delays: T.Union[int, float] = 10,
         timeout: T.Union[int, float] = 300,
@@ -309,7 +331,7 @@ class Ec2Instance:
 
     def wait_for_running(
         self,
-        ec2_client,
+        ec2_client: "EC2Client",
         delays: T.Union[int, float] = 10,
         timeout: T.Union[int, float] = 300,
         indent: int = 0,
@@ -336,7 +358,7 @@ class Ec2Instance:
 
     def wait_for_stopped(
         self,
-        ec2_client,
+        ec2_client: "EC2Client",
         delays: T.Union[int, float] = 10,
         timeout: T.Union[int, float] = 300,
         indent: int = 0,
@@ -363,7 +385,7 @@ class Ec2Instance:
 
     def wait_for_terminated(
         self,
-        ec2_client,
+        ec2_client: "EC2Client",
         delays: T.Union[int, float] = 10,
         timeout: T.Union[int, float] = 300,
         indent: int = 0,
@@ -402,7 +424,7 @@ class Ec2Instance:
     @classmethod
     def query(
         cls,
-        ec2_client,
+        ec2_client: "EC2Client",
         filters: T.List[dict] = NOTHING,
         instance_ids: T.List[str] = NOTHING,
     ) -> "Ec2InstanceIterProxy":
@@ -432,7 +454,11 @@ class Ec2Instance:
         return Ec2InstanceIterProxy(run())
 
     @classmethod
-    def from_id(cls, ec2_client, inst_id: str) -> T.Optional["Ec2Instance"]:
+    def from_id(
+        cls,
+        ec2_client: "EC2Client",
+        inst_id: str,
+    ) -> T.Optional["Ec2Instance"]:
         """
         Get ec2 instance details by it's id.
         """
@@ -444,7 +470,7 @@ class Ec2Instance:
     @classmethod
     def from_ec2_inside(
         cls,
-        ec2_client,
+        ec2_client: "EC2Client",
     ) -> T.Optional["Ec2Instance"]:  # pragma: no cover
         """
         Use ec2 metadata API to get the instance id.
@@ -462,7 +488,7 @@ class Ec2Instance:
     @classmethod
     def from_tag_key_value(
         cls,
-        ec2_client,
+        ec2_client: "EC2Client",
         key: str,
         value: T.Union[str, T.Iterable[str]],
     ) -> "Ec2InstanceIterProxy":
@@ -486,7 +512,7 @@ class Ec2Instance:
     @classmethod
     def from_ec2_name(
         cls,
-        ec2_client,
+        ec2_client: "EC2Client",
         name: T.Union[str, T.Iterable[str]],
     ) -> "Ec2InstanceIterProxy":
         """
@@ -509,43 +535,82 @@ class Ec2Instance:
     # --------------------------------------------------------------------------
     @classmethod
     def get_ami_id(cls) -> str:  # pragma: no cover
+        """
+        Get the AMI id of the EC2 instance. This method should only be used
+        within EC2 instance.
+        """
         return _get_metadata(name="ami-id")
 
     @classmethod
     def get_instance_id(cls) -> str:  # pragma: no cover
+        """
+        Get the instance id of the EC2 instance. This method should only be used
+        within EC2 instance.
+        """
         return _get_metadata(name="instance-id")
 
     @classmethod
     def get_instance_type(cls) -> str:  # pragma: no cover
+        """
+        Get the instance type of the EC2 instance. This method should only be used
+        within EC2 instance.
+        """
         return _get_metadata(name="instance-type")
 
     @classmethod
     def get_hostname(cls) -> str:  # pragma: no cover
+        """
+        Get the hostname of the EC2 instance. This method should only be used
+        within EC2 instance.
+        """
         return _get_metadata(name="hostname")
 
     @classmethod
     def get_local_hostname(cls) -> str:  # pragma: no cover
+        """
+        Get the local hostname of the EC2 instance. This method should only be used
+        within EC2 instance.
+        """
         return _get_metadata(name="local-hostname")
 
     @classmethod
     def get_local_ipv4(cls) -> str:  # pragma: no cover
+        """
+        Get the local ipv4 of the EC2 instance. This method should only be used
+        within EC2 instance.
+        """
         return _get_metadata(name="local-ipv4")
 
     @classmethod
     def get_public_hostname(cls) -> str:  # pragma: no cover
+        """
+        Get the public hostname of the EC2 instance. This method should only be used
+        within EC2 instance.
+        """
         return _get_metadata(name="public-hostname")
 
     @classmethod
     def get_public_ipv4(cls) -> str:  # pragma: no cover
+        """
+        Get the public ipv4 of the EC2 instance. This method should only be used
+        within EC2 instance.
+        """
         return _get_metadata(name="public-ipv4")
 
     @classmethod
     def get_security_groups(cls) -> T.List[str]:  # pragma: no cover
+        """
+        Get the security groups of the EC2 instance. This method should only be used
+        within EC2 instance.
+        """
         return _get_metadata(name="security-groups").splitlines()
 
     @classmethod
     def get_iam_info(cls) -> T.Dict[str, str]:  # pragma: no cover
         """
+        Get the IAM info of the EC2 instance. This method should only be used
+        within EC2 instance.
+
         Example response:
 
         .. code-block:: python
@@ -561,10 +626,18 @@ class Ec2Instance:
 
     @classmethod
     def get_placement_region(cls) -> str:  # pragma: no cover
+        """
+        Get the placement region of the EC2 instance. This method should only be used
+        within EC2 instance.
+        """
         return _get_metadata(name="placement/region")
 
     @classmethod
     def get_reservation_id(cls) -> str:  # pragma: no cover
+        """
+        Get the reservation id of the EC2 instance. This method should only be used
+        within EC2 instance.
+        """
         return _get_metadata(name="reservation-id")
 
 
@@ -577,15 +650,21 @@ class Ec2InstanceIterProxy(IterProxy[Ec2Instance]):
 # ------------------------------------------------------------------------------
 # AMI Image
 # ------------------------------------------------------------------------------
-
-
 class ImageTypeEnum(str, enum.Enum):
+    """
+    AMI Image type enumerations.
+    """
+
     machine = "machine"
     kernel = "kernel"
     ramdisk = "ramdisk"
 
 
 class ImageStateEnum(str, enum.Enum):
+    """
+    AMI Image state enumerations.
+    """
+
     pending = "pending"
     available = "available"
     invalid = "invalid"
@@ -597,22 +676,38 @@ class ImageStateEnum(str, enum.Enum):
 
 
 class ImageRootDeviceTypeEnum(str, enum.Enum):
+    """
+    AMI Image root device type enumerations.
+    """
+
     ebs = "ebs"
     instance_store = "instance-store"
 
 
 class ImageVirtualizationTypeEnum(str, enum.Enum):
+    """
+    AMI Image virtualization type enumerations.
+    """
+
     hvm = "hvm"
     paravirtual = "paravirtual"
 
 
 class ImageBootModeEnum(str, enum.Enum):
+    """
+    AMI Image boot mode enumerations.
+    """
+
     legacy_bios = "legacy-bios"
     uefi = "uefi"
     uefi_preferred = "uefi-preferred"
 
 
 class ImageOwnerGroupEnum(str, enum.Enum):
+    """
+    AMI Image owner group enumerations.
+    """
+
     self = "self"
     amazon = "amazon"
     aws_marketplace = "aws-marketplace"
@@ -693,7 +788,7 @@ class Image:
     data: T.Dict[str, T.Any] = dataclasses.field(default_factory=dict)
 
     @classmethod
-    def from_dict(cls, dct: dict) -> "Image":
+    def from_dict(cls, dct: dict):
         """
         Create an AMI Image object from the ``describe_images`` API response.
 
@@ -735,68 +830,111 @@ class Image:
         )
 
     def image_type_is_machine(self) -> bool:
-        """ """
+        """
+        Check if the image type is machine.
+        """
         return self.image_type == ImageTypeEnum.machine.value
 
     def image_type_is_kernel(self) -> bool:
-        """ """
+        """
+        Check if the image type is kernel.
+        """
         return self.image_type == ImageTypeEnum.kernel.value
 
     def image_type_is_ramdisk(self) -> bool:
-        """ """
+        """
+        Check if the image type is ramdisk.
+        """
         return self.image_type == ImageTypeEnum.ramdisk.value
 
     def is_pending(self) -> bool:
-        """ """
+        """
+        Check if the image status is pending.
+        """
         return self.state == ImageStateEnum.pending.value
 
     def is_available(self) -> bool:
-        """ """
+        """
+        Check if the image status is available.
+        """
         return self.state == ImageStateEnum.available.value
 
     def is_invalid(self) -> bool:
-        """ """
+        """
+        Check if the image status is invalid.
+        """
         return self.state == ImageStateEnum.invalid.value
 
     def is_deregistered(self) -> bool:
-        """ """
+        """
+        Check if the image status is deregistered.
+        """
         return self.state == ImageStateEnum.deregistered.value
 
     def is_transient(self) -> bool:
-        """ """
+        """
+        Check if the image status is transient.
+        """
         return self.state == ImageStateEnum.transient.value
 
     def is_failed(self) -> bool:
-        """ """
+        """
+        Check if the image status is failed.
+        """
         return self.state == ImageStateEnum.failed.value
 
     def is_error(self) -> bool:
-        """ """
+        """
+        Check if the image status is error.
+        """
         return self.state == ImageStateEnum.error.value
 
     def is_disabled(self) -> bool:
-        """ """
+        """
+        Check if the image status is disabled.
+        """
         return self.state == ImageStateEnum.disabled.value
 
     def image_root_device_type_is_ebs(self) -> bool:
+        """
+        Check if the image root device type is ebs.
+        """
         return self.root_device_type == ImageRootDeviceTypeEnum.ebs.value
 
     def image_root_device_type_is_instance_store(self) -> bool:
+        """
+        Check if the image root device type is instance store.
+        """
         return self.root_device_type == ImageRootDeviceTypeEnum.instance_store.value
 
     def image_virtualization_type_is_hvm(self) -> bool:
+        """
+        Check if the image virtualization type is hvm.
+        """
         return self.virtualization_type == ImageVirtualizationTypeEnum.hvm.value
 
     def image_virtualization_type_is_paravirtual(self) -> bool:
+        """
+        Check if the image virtualization type is paravirtual.
+        """
         return self.virtualization_type == ImageVirtualizationTypeEnum.paravirtual.value
 
     def image_boot_mode_is_legacy_bios(self) -> bool:
+        """
+        Check if the image boot mode is legacy bios.
+        """
         return self.boot_mode == ImageBootModeEnum.legacy_bios.value
 
     def image_boot_mode_is_uefi(self) -> bool:
+        """
+        Check if the image boot mode is uefi.
+        """
         return self.boot_mode == ImageBootModeEnum.uefi.value
 
     def image_boot_mode_is_uefi_preferred(self) -> bool:
+        """
+        Check if the image boot mode is uefi preferred.
+        """
         return self.boot_mode == ImageBootModeEnum.uefi_preferred.value
 
     @property
@@ -848,43 +986,65 @@ class Image:
         raise CannotDetectOSTypeError
 
     def is_amazon_linux_os(self) -> bool:  # pragma: no cover
-        """"""
+        """
+        Check if the image OS is Amazon Linux.
+        """
         return self.os_type is ImageOSTypeEnum.AmazonLinux
 
-    def is_cent_os_os(self) -> bool:  # pragma: no cover
-        """"""
+    def is_centos_os(self) -> bool:  # pragma: no cover
+        """
+        Check if the image OS is CentOS.
+        """
         return self.os_type is ImageOSTypeEnum.CentOS
 
+    is_cent_os_os = is_centos_os  # for backward compatibility
+
     def is_debian_os(self) -> bool:  # pragma: no cover
-        """"""
+        """
+        Check if the image OS is Debian.
+        """
         return self.os_type is ImageOSTypeEnum.Debian
 
     def is_fedora_os(self) -> bool:  # pragma: no cover
-        """"""
+        """
+        Check if the image OS is Fedora.
+        """
         return self.os_type is ImageOSTypeEnum.Fedora
 
     def is_rhel_os(self) -> bool:  # pragma: no cover
-        """"""
+        """
+        Check if the image OS is RHEL.
+        """
         return self.os_type is ImageOSTypeEnum.RHEL
 
     def is_suse_os(self) -> bool:  # pragma: no cover
-        """"""
+        """
+        Check if the image OS is SUSE.
+        """
         return self.os_type is ImageOSTypeEnum.SUSE
 
     def is_ubuntu_os(self) -> bool:  # pragma: no cover
-        """"""
+        """
+        Check if the image OS is Ubuntu.
+        """
         return self.os_type is ImageOSTypeEnum.Ubuntu
 
     def is_oracle_os(self) -> bool:  # pragma: no cover
-        """"""
+        """
+        Check if the image OS is Oracle.
+        """
         return self.os_type is ImageOSTypeEnum.Oracle
 
     def is_bitnami_os(self) -> bool:  # pragma: no cover
-        """"""
+        """
+        Check if the image OS is Bitnami.
+        """
         return self.os_type is ImageOSTypeEnum.Bitnami
 
     def is_other_os(self) -> bool:  # pragma: no cover
-        """"""
+        """
+        Check if the image OS is other.
+        """
         return self.os_type is ImageOSTypeEnum.Other
 
     @property
@@ -922,7 +1082,7 @@ class Image:
     @classmethod
     def query(
         cls,
-        ec2_client,
+        ec2_client: "EC2Client",
         filters: T.List[dict] = NOTHING,
         image_ids: T.List[str] = NOTHING,
         executable_users: T.List[str] = NOTHING,
@@ -960,11 +1120,11 @@ class Image:
     @classmethod
     def from_id(
         cls,
-        ec2_client,
+        ec2_client: "EC2Client",
         image_id: str,
     ) -> T.Optional["Image"]:
         """
-        TODO: docstring
+        Get :class:`Image` object by the image id.
         """
         return cls.query(
             ec2_client=ec2_client,
@@ -974,7 +1134,7 @@ class Image:
     @classmethod
     def from_tag_key_value(
         cls,
-        ec2_client,
+        ec2_client: "EC2Client",
         key: str,
         value: T.Union[str, T.Iterable[str]],
     ) -> "ImageIterProxy":
@@ -998,7 +1158,7 @@ class Image:
     @classmethod
     def from_image_name(
         cls,
-        ec2_client,
+        ec2_client: "EC2Client",
         name: T.Union[str, T.Iterable[str]],
     ) -> "ImageIterProxy":
         """
@@ -1019,7 +1179,7 @@ class Image:
     @classmethod
     def from_ec2_inside(
         cls,
-        ec2_client,
+        ec2_client: "EC2Client",
     ) -> T.Optional["Image"]:  # pragma: no cover
         """
         Use ec2 metadata API to get the instance id, then get the image details
@@ -1033,11 +1193,11 @@ class Image:
 
     def deregister(
         self,
-        ec2_client,
+        ec2_client: "EC2Client",
         delete_snapshot: bool = False,
         skip_prompt: bool = False,
         verbose: bool = False,
-    ) -> T.List[str]:
+    ):
         """
         Deregister this image.
 
@@ -1058,11 +1218,12 @@ class Image:
 
         ec2_client.deregister_image(ImageId=self.id)
 
+        # ensure the image is deregistered
         for attempt, elapse in Waiter(
             delays=1,
             timeout=30,
             verbose=verbose,
-        ):
+        ):  # pragma: no cover
             try:
                 images = self.query(ec2_client=ec2_client, image_ids=[self.id]).all()
                 if len(images) == 0:
@@ -1072,7 +1233,7 @@ class Image:
             except ClientError as e:
                 if e.response["Error"]["Code"].startswith("InvalidAMIID"):
                     break
-                else: # pragma: no cover
+                else:  # pragma: no cover
                     raise e
 
         if delete_snapshot:  # pragma: no cover
@@ -1084,7 +1245,7 @@ class Image:
     # --------------------------------------------------------------------------
     def wait_for_status(
         self,
-        ec2_client,
+        ec2_client: "EC2Client",
         stop_status: T.Union[ImageStateEnum, T.List[ImageStateEnum]],
         delays: T.Union[int, float] = 10,
         timeout: T.Union[int, float] = 300,
@@ -1135,7 +1296,7 @@ class Image:
 
     def wait_for_available(
         self,
-        ec2_client,
+        ec2_client: "EC2Client",
         delays: T.Union[int, float] = 10,
         timeout: T.Union[int, float] = 300,
         indent: int = 0,
@@ -1163,7 +1324,7 @@ class Image:
 
     def wait_for_deregistered(
         self,
-        ec2_client,
+        ec2_client: "EC2Client",
         delays: T.Union[int, float] = 10,
         timeout: T.Union[int, float] = 300,
         indent: int = 0,
@@ -1193,4 +1354,134 @@ class Image:
 class ImageIterProxy(IterProxy[Image]):
     """
     Advanced iterator proxy for :class:`Image`.
+    """
+
+
+# ------------------------------------------------------------------------------
+# Elastic IP
+# ------------------------------------------------------------------------------
+@dataclasses.dataclass
+class Eip:
+    """
+    Represent an Elastic IP Address.
+    """
+
+    allocation_id: str = dataclasses.field(default=None)
+    public_ip: T.Optional[str] = dataclasses.field(default=None)
+    association_id: T.Optional[str] = dataclasses.field(default=None)
+    instance_id: T.Optional[str] = dataclasses.field(default=None)
+    domain: T.Optional[str] = dataclasses.field(default=None)
+    network_interface_id: T.Optional[str] = dataclasses.field(default=None)
+    network_interface_owner_id: T.Optional[str] = dataclasses.field(default=None)
+    private_ip_address: T.Optional[str] = dataclasses.field(default=None)
+    public_ipv4_pool: T.Optional[str] = dataclasses.field(default=None)
+    network_border_group: T.Optional[str] = dataclasses.field(default=None)
+    customer_owned_ip: T.Optional[str] = dataclasses.field(default=None)
+    customer_owned_ipv4_pool: T.Optional[str] = dataclasses.field(default=None)
+    carrier_ip: T.Optional[str] = dataclasses.field(default=None)
+    tags: T.Dict[str, str] = dataclasses.field(default_factory=dict)
+    data: T.Dict[str, T.Any] = dataclasses.field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, dct: dict):
+        """
+        Create an AMI Image object from the ``describe_images`` API response.
+
+        Ref:
+
+        - https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/client/describe_images.html
+        """
+        return cls(
+            allocation_id=dct.get("AllocationId"),
+            public_ip=dct.get("PublicIp"),
+            association_id=dct.get("AssociationId"),
+            instance_id=dct.get("InstanceId"),
+            domain=dct.get("Domain"),
+            network_interface_id=dct.get("NetworkInterfaceId"),
+            network_interface_owner_id=dct.get("NetworkInterfaceOwnerId"),
+            private_ip_address=dct.get("PrivateIpAddress"),
+            public_ipv4_pool=dct.get("PublicIpv4Pool"),
+            network_border_group=dct.get("NetworkBorderGroup"),
+            customer_owned_ip=dct.get("CustomerOwnedIp"),
+            customer_owned_ipv4_pool=dct.get("CustomerOwnedIpv4Pool"),
+            carrier_ip=dct.get("CarrierIp"),
+            tags={kv["Key"]: kv["Value"] for kv in dct.get("Tags", [])},
+            data=dct,
+        )
+
+    def is_associated(self) -> bool:
+        """
+        Check if the EIP is associated with an instance.
+        """
+        return self.association_id is not None
+
+    # --------------------------------------------------------------------------
+    # more constructor methods
+    # --------------------------------------------------------------------------
+    @classmethod
+    def _yield_dict_from_describe_addresses(
+        cls,
+        res: dict,
+    ) -> T.Iterable["Eip"]:
+        for eip_dict in res.get("Addresses", []):
+            yield cls.from_dict(eip_dict)
+
+    @classmethod
+    def query(
+        cls,
+        ec2_client: "EC2Client",
+        filters: T.List[dict] = NOTHING,
+        allocation_ids: T.List[str] = NOTHING,
+        public_ips: T.List[str] = NOTHING,
+    ) -> "EipIterProxy":
+        """
+        A wrapper around ``ec2_client.describe_addresses``.
+
+        Multiple filters join with logic "AND", multiple values in a filter
+        join with logic "OR".
+        """
+
+        def run():
+            kwargs = resolve_kwargs(
+                Filters=filters,
+                AllocationIds=allocation_ids,
+                PublicIps=public_ips,
+            )
+            response = ec2_client.describe_addresses(**kwargs)
+            yield from cls._yield_dict_from_describe_addresses(response)
+
+        return EipIterProxy(run())
+
+    @classmethod
+    def from_id(
+        cls,
+        ec2_client: "EC2Client",
+        allocation_id: str,
+    ) -> T.Optional["Eip"]:
+        """
+        Get :class:`Eip` object by the allocation id.
+        """
+        return cls.query(
+            ec2_client=ec2_client,
+            allocation_ids=[allocation_id],
+        ).one_or_none()
+
+    @classmethod
+    def from_public_ip(
+        cls,
+        ec2_client: "EC2Client",
+        public_ip: str,
+    ) -> T.Optional["Eip"]:
+        """
+        Get :class:`Eip` object by the public ip.
+        """
+        return cls.query(
+            ec2_client=ec2_client,
+            public_ips=[public_ip],
+        ).one_or_none()
+
+
+class EipIterProxy(IterProxy[Eip]):
+    """
+    Advanced iterator proxy for :class:`Eip`.
     """

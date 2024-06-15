@@ -15,6 +15,21 @@ Backlog (TODO)
 **Miscellaneous**
 
 
+0.8.1 (2024-06-15)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Features and Improvements**
+
+- Add the following public API:
+    - :class:`simple_aws_ec2.StatusError <simple_aws_ec2.exc.StatusError>`
+    - :class:`simple_aws_ec2.Eip <simple_aws_ec2.ec2.Eip>`
+    - :meth:`simple_aws_ec2.Eip.from_dict <simple_aws_ec2.ec2.Eip.from_dict>`
+    - :meth:`simple_aws_ec2.Eip.is_associated <simple_aws_ec2.ec2.Eip.is_associated>`
+    - :meth:`simple_aws_ec2.Eip.query <simple_aws_ec2.ec2.Eip.query>`
+    - :meth:`simple_aws_ec2.Eip.from_id <simple_aws_ec2.ec2.Eip.from_id>`
+    - :meth:`simple_aws_ec2.Eip.from_public_ip <simple_aws_ec2.ec2.Eip.from_public_ip>`
+    - :class:`simple_aws_ec2.EipIterProxy <simple_aws_ec2.ec2.EipIterProxy>`
+
+
 0.7.3 (2024-06-14)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Bugfixes**

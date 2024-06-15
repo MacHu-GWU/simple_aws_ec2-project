@@ -4,6 +4,7 @@ import pytest
 import moto
 from boto_session_manager import BotoSesManager
 
+from simple_aws_ec2.tests.mock_aws import BaseMockTest
 from simple_aws_ec2.ec2 import (
     StatusError,
     EC2InstanceStatusEnum,
@@ -11,15 +12,17 @@ from simple_aws_ec2.ec2 import (
     Image,
     ImageOwnerGroupEnum,
     ImageOSTypeEnum,
+    Eip,
 )
 
 
-class TestEc2:
-    mock_ec2 = None
-    bsm: BotoSesManager = None
+class TestEc2(BaseMockTest):
+    mock_list = [
+        moto.mock_ec2,
+    ]
 
     @classmethod
-    def setup_ec2_resources(cls):
+    def setup_class_post_hook(cls):
         image_id = cls.bsm.ec2_client.describe_images()["Images"][0]["ImageId"]
 
         cls.inst_id_1 = cls.bsm.ec2_client.run_instances(
@@ -68,17 +71,6 @@ class TestEc2:
                 )
             ],
         )["ImageId"]
-
-    @classmethod
-    def setup_class(cls):
-        cls.mock_ec2 = moto.mock_ec2()
-        cls.mock_ec2.start()
-        cls.bsm = BotoSesManager(region_name="us-east-1")
-        cls.setup_ec2_resources()
-
-    @classmethod
-    def teardown_class(cls):
-        cls.mock_ec2.stop()
 
     def _test_ec2(self):
         inst_id_list = [
@@ -164,6 +156,7 @@ class TestEc2:
         assert image.image_boot_mode_is_legacy_bios() is False
         assert image.image_boot_mode_is_uefi() is False
         assert image.image_boot_mode_is_uefi_preferred() is False
+        assert len(image.ebs_snapshot_id_list) == 1
 
         image_list_1 = Image.from_image_name(self.bsm.ec2_client, "my-image-1").all()
         image_list_2 = Image.from_image_name(
@@ -243,12 +236,25 @@ class TestEc2:
         image = Image.from_id(self.bsm.ec2_client, self.image_id_1)
         assert image is None
 
+    def _test_eip(self):
+        ec2_client = self.bsm.ec2_client
+        res = ec2_client.allocate_address()
+        allo_id = res["AllocationId"]
+        pub_ip = res["PublicIp"]
+
+        eip1 = Eip.from_id(ec2_client, allo_id)
+        eip2 = Eip.from_public_ip(ec2_client, pub_ip)
+        assert eip1.allocation_id == eip2.allocation_id
+        assert eip1.is_associated() is False
+        assert eip2.is_associated() is False
+
     def test(self):
         self._test_ec2()
         self._test_ec2_start_and_stop()
         self._test_ec2_wait_for_status()
         self._test_image()
         self._test_ami_wait_for_status()
+        self._test_eip()
 
 
 if __name__ == "__main__":

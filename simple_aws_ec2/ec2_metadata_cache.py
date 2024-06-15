@@ -25,7 +25,7 @@ EXPIRE = 24 * 60 * 60  # 24 hours
 
 
 @dataclasses.dataclass
-class EC2MetadataCache:
+class Ec2MetadataCache:
     """
     A data container for EC2 metadata with cache backend.
 
@@ -33,7 +33,7 @@ class EC2MetadataCache:
 
     .. code-block:: python
 
-        >>> ec2_metadata = EC2MetadataCache.load()
+        >>> ec2_metadata = Ec2MetadataCache.load()
         >>> ec2_metadata.get_instance_id
         >>> ec2_metadata.get_instance_type
         >>> ec2_metadata.get_region
@@ -51,13 +51,23 @@ class EC2MetadataCache:
 
     @classmethod
     def from_dict(cls, data: dict):
+        """
+        Deserialize the data to the class instance.
+        """
         return cls(**data)
 
     def to_dict(self):
+        """
+        Serialize the data to a dictionary.
+        """
         return dataclasses.asdict(self)
 
     @classmethod
     def load(cls):
+        """
+        Load the data from the cache file. If cache file does not exist,
+        initialize the cache file.
+        """
         if path_ec2_metadata_cache_json.exists():
             data = json.loads(path_ec2_metadata_cache_json.read_text())
             data["_update_time"] = datetime.fromisoformat(data["_update_time"])
@@ -68,11 +78,17 @@ class EC2MetadataCache:
             return ec2_metadata
 
     def dump(self):
+        """
+        Dump the data to the cache file.
+        """
         data = self.to_dict()
         data["_update_time"] = data["_update_time"].isoformat()
         path_ec2_metadata_cache_json.write_text(json.dumps(data))
 
     def is_expired(self) -> bool:
+        """
+        Check if the in-memory cache is expired.
+        """
         utc_now = datetime.utcnow().replace(tzinfo=timezone.utc)
         return (utc_now - self._update_time).total_seconds() > EXPIRE
 

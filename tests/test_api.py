@@ -22,7 +22,10 @@ def test():
     _ = api.ImageOSTypeEnum
     _ = api.Image
     _ = api.ImageIterProxy
-    _ = api.EC2MetadataCache
+    _ = api.Eip
+    _ = api.EipIterProxy
+
+    _ = api.Ec2MetadataCache
 
     # attribute and method
     _ = api.Ec2Instance.is_pending
@@ -89,6 +92,12 @@ def test():
     _ = api.Image.from_tag_key_value
     _ = api.Image.from_image_name
     _ = api.Image.from_ec2_inside
+
+    _ = api.Eip.from_dict
+    _ = api.Eip.is_associated
+    _ = api.Eip.query
+    _ = api.Eip.from_id
+    _ = api.Eip.from_public_ip
 
 
 if __name__ == "__main__":

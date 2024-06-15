@@ -2,24 +2,9 @@
 
 """
 Public API.
-
-- :class:`~simple_aws_ec2.ec2.CannotDetectOSTypeError`
-- :class:`~simple_aws_ec2.ec2.EC2InstanceStatusEnum`
-- :class:`~simple_aws_ec2.ec2.EC2InstanceArchitectureEnum`
-- :class:`~simple_aws_ec2.ec2.Ec2InstanceHypervisorEnum`
-- :class:`~simple_aws_ec2.ec2.Ec2Instance`
-- :class:`~simple_aws_ec2.ec2.Ec2InstanceIterProxy`
-- :class:`~simple_aws_ec2.ec2.ImageTypeEnum`
-- :class:`~simple_aws_ec2.ec2.ImageStateEnum`
-- :class:`~simple_aws_ec2.ec2.ImageRootDeviceTypeEnum`
-- :class:`~simple_aws_ec2.ec2.ImageVirtualizationTypeEnum`
-- :class:`~simple_aws_ec2.ec2.ImageBootModeEnum`
-- :class:`~simple_aws_ec2.ec2.ImageOwnerGroupEnum`
-- :class:`~simple_aws_ec2.ec2.ImageOSTypeEnum`
-- :class:`~simple_aws_ec2.ec2.Image`
-- :class:`~simple_aws_ec2.ec2.ImageIterProxy`
 """
 
+from .exc import StatusError
 from .ec2 import CannotDetectOSTypeError
 from .ec2 import EC2InstanceStatusEnum
 from .ec2 import EC2InstanceStatusGroupEnum
@@ -36,4 +21,8 @@ from .ec2 import ImageOwnerGroupEnum
 from .ec2 import ImageOSTypeEnum
 from .ec2 import Image
 from .ec2 import ImageIterProxy
-from .ec2_metadata_cache import EC2MetadataCache
+from .ec2 import Eip
+from .ec2 import EipIterProxy
+from .ec2_metadata_cache import Ec2MetadataCache
+
+EC2MetadataCache = Ec2MetadataCache  # for backward compatibility
