@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import pytest
+from simple_aws_ec2 import api
 
 
 def test():
-    from simple_aws_ec2 import api
 
     # top level API
     _ = api.CannotDetectOSTypeError
@@ -93,7 +92,6 @@ def test():
 
 
 if __name__ == "__main__":
-    import os
+    from simple_aws_ec2.tests import run_cov_test
 
-    basename = os.path.basename(__file__)
-    pytest.main([basename, "-s", "--tb=native"])
+    run_cov_test(__file__, "simple_aws_ec2.api", preview=False)

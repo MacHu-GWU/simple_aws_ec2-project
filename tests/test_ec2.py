@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import os
 import pytest
 import moto
 from boto_session_manager import BotoSesManager
@@ -253,5 +252,6 @@ class TestEc2:
 
 
 if __name__ == "__main__":
-    basename = os.path.basename(__file__)
-    pytest.main([basename, "-s", "--tb=native"])
+    from simple_aws_ec2.tests import run_cov_test
+
+    run_cov_test(__file__, "simple_aws_ec2.ec2", preview=False)
