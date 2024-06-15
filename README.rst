@@ -1,6 +1,6 @@
 
-.. .. image:: https://readthedocs.org/projects/simple_aws_ec2/badge/?version=latest
-    :target: https://simple_aws_ec2.readthedocs.io/index.html
+.. image:: https://readthedocs.org/projects/simple-aws-ec2/badge/?version=latest
+    :target: https://simple-aws-ec2.readthedocs.io/en/latest/
     :alt: Documentation Status
 
 .. image:: https://github.com/MacHu-GWU/simple_aws_ec2-project/workflows/CI/badge.svg
@@ -9,14 +9,14 @@
 .. image:: https://codecov.io/gh/MacHu-GWU/simple_aws_ec2-project/branch/main/graph/badge.svg
     :target: https://codecov.io/gh/MacHu-GWU/simple_aws_ec2-project
 
-.. image:: https://img.shields.io/pypi/v/simple_aws_ec2.svg
-    :target: https://pypi.python.org/pypi/simple_aws_ec2
+.. image:: https://img.shields.io/pypi/v/simple-aws-ec2.svg
+    :target: https://pypi.python.org/pypi/simple-aws-ec2
 
-.. image:: https://img.shields.io/pypi/l/simple_aws_ec2.svg
-    :target: https://pypi.python.org/pypi/simple_aws_ec2
+.. image:: https://img.shields.io/pypi/l/simple-aws-ec2.svg
+    :target: https://pypi.python.org/pypi/simple-aws-ec2
 
-.. image:: https://img.shields.io/pypi/pyversions/simple_aws_ec2.svg
-    :target: https://pypi.python.org/pypi/simple_aws_ec2
+.. image:: https://img.shields.io/pypi/pyversions/simple-aws-ec2.svg
+    :target: https://pypi.python.org/pypi/simple-aws-ec2
 
 .. image:: https://img.shields.io/badge/Release_History!--None.svg?style=social
     :target: https://github.com/MacHu-GWU/simple_aws_ec2-project/blob/main/release-history.rst
@@ -26,15 +26,11 @@
 
 ------
 
+.. image:: https://img.shields.io/badge/Link-Document-blue.svg
+    :target: https://simple-aws-ec2.readthedocs.io/en/latest/
 
-.. .. image:: https://img.shields.io/badge/Link-Document-blue.svg
-    :target: https://simple_aws_ec2.readthedocs.io/index.html
-
-.. .. image:: https://img.shields.io/badge/Link-API-blue.svg
-    :target: https://simple_aws_ec2.readthedocs.io/py-modindex.html
-
-.. .. image:: https://img.shields.io/badge/Link-Source_Code-blue.svg
-    :target: https://simple_aws_ec2.readthedocs.io/py-modindex.html
+.. image:: https://img.shields.io/badge/Link-API-blue.svg
+    :target: https://simple-aws-ec2.readthedocs.io/en/latest/py-modindex.html
 
 .. image:: https://img.shields.io/badge/Link-Install-blue.svg
     :target: `install`_
@@ -49,7 +45,7 @@
     :target: https://github.com/MacHu-GWU/simple_aws_ec2-project/issues
 
 .. image:: https://img.shields.io/badge/Link-Download-blue.svg
-    :target: https://pypi.org/pypi/simple_aws_ec2#files
+    :target: https://pypi.org/pypi/simple-aws-ec2#files
 
 
 Welcome to ``simple_aws_ec2`` Documentation
