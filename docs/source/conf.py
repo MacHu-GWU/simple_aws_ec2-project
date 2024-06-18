@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# acore_conf documentation build configuration file, created by
+# simple_aws_ec2 documentation build configuration file, created by
 # sphinx-quickstart on Mon Jul 1 00:00:00 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -225,7 +225,7 @@ rst_prolog = "\n" + custom_style_file_content + "\n"
 
 # Add data for Jinja2
 try:
-    from acore_conf.docs import doc_data
+    from simple_aws_ec2.docs import doc_data
 except:
     doc_data = dict()
 
