@@ -6,6 +6,7 @@ omit =
     simple_aws_ec2/tests/*
     simple_aws_ec2/vendor/*
     simple_aws_ec2/_version.py
+    simple_aws_ec2/paths.py
 
 [report]
 # Regexes for lines to exclude from consideration

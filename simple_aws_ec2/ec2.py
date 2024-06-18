@@ -7,6 +7,7 @@ Abstract dataclass for EC2 instance.
 import typing as T
 import enum
 import json
+import time
 import dataclasses
 from datetime import datetime
 from urllib import request
@@ -282,8 +283,10 @@ class Ec2Instance:
         self,
         ec2_client: "EC2Client",
         stop_status: T.Union[EC2InstanceStatusEnum, T.List[EC2InstanceStatusEnum]],
+        gap: T.Union[int, float] = 1,
         delays: T.Union[int, float] = 10,
         timeout: T.Union[int, float] = 300,
+        instant: bool = True,
         error_status: T.Optional[
             T.Union[EC2InstanceStatusEnum, T.List[EC2InstanceStatusEnum]]
         ] = None,
@@ -296,8 +299,10 @@ class Ec2Instance:
 
         :param ec2_client:
         :param stop_status: status to stop waiting
+        :param gap: the time to wait before making first status check
         :param delays: delay between each check
         :param timeout: timeout in seconds
+        :param instant: if True, then the first check is instant
         :param error_status: status to raise error
         :param indent: indent level for logging
         :param verbose: whether to print log
@@ -315,9 +320,13 @@ class Ec2Instance:
         else:
             error_status_set = {status.value for status in error_status}
 
+        if gap:
+            time.sleep(gap)
+
         for attempt, elapse in Waiter(
             delays=delays,
             timeout=timeout,
+            instant=instant,
             indent=indent,
             verbose=verbose,
         ):
@@ -332,8 +341,10 @@ class Ec2Instance:
     def wait_for_running(
         self,
         ec2_client: "EC2Client",
+        gap: T.Union[int, float] = 1,
         delays: T.Union[int, float] = 10,
         timeout: T.Union[int, float] = 300,
+        instant: bool = True,
         indent: int = 0,
         verbose: bool = True,
     ) -> "Ec2Instance":  # pragma: no cover
@@ -344,8 +355,10 @@ class Ec2Instance:
         return self.wait_for_status(
             ec2_client=ec2_client,
             stop_status=EC2InstanceStatusEnum.running,
+            gap=gap,
             delays=delays,
             timeout=timeout,
+            instant=instant,
             error_status=[
                 EC2InstanceStatusEnum.shutting_down,
                 EC2InstanceStatusEnum.terminated,
@@ -359,8 +372,10 @@ class Ec2Instance:
     def wait_for_stopped(
         self,
         ec2_client: "EC2Client",
+        gap: T.Union[int, float] = 1,
         delays: T.Union[int, float] = 10,
         timeout: T.Union[int, float] = 300,
+        instant: bool = True,
         indent: int = 0,
         verbose: bool = True,
     ) -> "Ec2Instance":  # pragma: no cover
@@ -371,8 +386,10 @@ class Ec2Instance:
         return self.wait_for_status(
             ec2_client=ec2_client,
             stop_status=EC2InstanceStatusEnum.stopped,
+            gap=gap,
             delays=delays,
             timeout=timeout,
+            instant=instant,
             error_status=[
                 EC2InstanceStatusEnum.pending,
                 EC2InstanceStatusEnum.running,
@@ -386,8 +403,10 @@ class Ec2Instance:
     def wait_for_terminated(
         self,
         ec2_client: "EC2Client",
+        gap: T.Union[int, float] = 1,
         delays: T.Union[int, float] = 10,
         timeout: T.Union[int, float] = 300,
+        instant: bool = True,
         indent: int = 0,
         verbose: bool = True,
     ) -> "Ec2Instance":  # pragma: no cover
@@ -398,8 +417,10 @@ class Ec2Instance:
         return self.wait_for_status(
             ec2_client=ec2_client,
             stop_status=EC2InstanceStatusEnum.terminated,
+            gap=gap,
             delays=delays,
             timeout=timeout,
+            instant=instant,
             error_status=[
                 EC2InstanceStatusEnum.pending,
                 EC2InstanceStatusEnum.running,
@@ -1247,8 +1268,10 @@ class Image:
         self,
         ec2_client: "EC2Client",
         stop_status: T.Union[ImageStateEnum, T.List[ImageStateEnum]],
+        gap: T.Union[int, float] = 1,
         delays: T.Union[int, float] = 10,
         timeout: T.Union[int, float] = 300,
+        instant: bool = True,
         error_status: T.Optional[
             T.Union[ImageStateEnum, T.List[ImageStateEnum]]
         ] = None,
@@ -1261,8 +1284,10 @@ class Image:
 
         :param ec2_client:
         :param stop_status: status to stop waiting
+        :param gap: the time to wait before making first status check
         :param delays: delay between each check
         :param timeout: timeout in seconds
+        :param instant: if True, then the first check is instant
         :param error_status: status to raise error
         :param indent: indent level for logging
         :param verbose: whether to print log
@@ -1280,9 +1305,13 @@ class Image:
         else:
             error_status_set = {status.value for status in error_status}
 
+        if gap:
+            time.sleep(gap)
+
         for attempt, elapse in Waiter(
             delays=delays,
             timeout=timeout,
+            instant=instant,
             indent=indent,
             verbose=verbose,
         ):
@@ -1297,8 +1326,10 @@ class Image:
     def wait_for_available(
         self,
         ec2_client: "EC2Client",
+        gap: T.Union[int, float] = 1,
         delays: T.Union[int, float] = 10,
         timeout: T.Union[int, float] = 300,
+        instant: bool = True,
         indent: int = 0,
         verbose: bool = True,
     ) -> "Image":  # pragma: no cover
@@ -1309,8 +1340,10 @@ class Image:
         return self.wait_for_status(
             ec2_client=ec2_client,
             stop_status=ImageStateEnum.available,
+            gap=gap,
             delays=delays,
             timeout=timeout,
+            instant=instant,
             error_status=[
                 ImageStateEnum.invalid,
                 ImageStateEnum.deregistered,
@@ -1325,8 +1358,10 @@ class Image:
     def wait_for_deregistered(
         self,
         ec2_client: "EC2Client",
+        gap: T.Union[int, float] = 1,
         delays: T.Union[int, float] = 10,
         timeout: T.Union[int, float] = 300,
+        instant: bool = True,
         indent: int = 0,
         verbose: bool = True,
     ) -> "Image":  # pragma: no cover
@@ -1337,8 +1372,10 @@ class Image:
         return self.wait_for_status(
             ec2_client=ec2_client,
             stop_status=ImageStateEnum.deregistered,
+            gap=gap,
             delays=delays,
             timeout=timeout,
+            instant=instant,
             error_status=[
                 ImageStateEnum.available,
                 ImageStateEnum.invalid,

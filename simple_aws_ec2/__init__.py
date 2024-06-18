@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+"""
+Pythonic AWS EC2 boto3 API, for human.
+"""
+
 from ._version import __version__
 
 __short_description__ = "Pythonic AWS EC2 boto3 API, for human."
