@@ -22,6 +22,11 @@ from .exc import StatusError
 
 if T.TYPE_CHECKING:  # pragma: no cover
     from mypy_boto3_ec2.client import EC2Client
+    from mypy_boto3_ec2.type_defs import (
+        StartInstancesResultTypeDef,
+        StopInstancesResultTypeDef,
+        TerminateInstancesResultTypeDef,
+    )
 
 
 class CannotDetectOSTypeError(TypeError):
@@ -250,7 +255,7 @@ class Ec2Instance:
         """
         return self.is_stopped() is True
 
-    def start_instance(self, ec2_client: "EC2Client"):
+    def start_instance(self, ec2_client: "EC2Client") -> "StartInstancesResultTypeDef":
         """
         Start instance.
         """
@@ -259,7 +264,7 @@ class Ec2Instance:
             DryRun=False,
         )
 
-    def stop_instance(self, ec2_client: "EC2Client"):
+    def stop_instance(self, ec2_client: "EC2Client") -> "StopInstancesResultTypeDef":
         """
         Stop instance.
         """
@@ -268,7 +273,9 @@ class Ec2Instance:
             DryRun=False,
         )
 
-    def terminate_instance(self, ec2_client: "EC2Client"):
+    def terminate_instance(
+        self, ec2_client: "EC2Client"
+    ) -> "TerminateInstancesResultTypeDef":
         """
         Terminate instance.
         """
