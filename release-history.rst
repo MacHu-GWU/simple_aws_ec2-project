@@ -15,6 +15,13 @@ Backlog (TODO)
 **Miscellaneous**
 
 
+0.8.3 (2024-06-19)
+------------------------------------------------------------------------------
+**Minor Improvements**
+
+- now ``wait_for_status`` methods will automatically add a ``\n`` when exists.
+
+
 0.8.2 (2024-06-18)
 ------------------------------------------------------------------------------
 **Minor Improvements**

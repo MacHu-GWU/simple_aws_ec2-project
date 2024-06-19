@@ -5,6 +5,7 @@ Abstract dataclass for EC2 instance.
 """
 
 import typing as T
+import sys
 import enum
 import json
 import time
@@ -332,6 +333,8 @@ class Ec2Instance:
         ):
             ec2_inst = self.from_id(ec2_client, self.id)
             if ec2_inst.status in stop_status_set:
+                if verbose:
+                    sys.stdout.write("\n")
                 return ec2_inst
             elif ec2_inst.status in error_status_set:
                 raise StatusError(f"stop because status reaches {ec2_inst.status!r}")
@@ -1317,6 +1320,8 @@ class Image:
         ):
             image = self.from_id(ec2_client, self.id)
             if image.state in stop_status_set:
+                if verbose:
+                    sys.stdout.write("\n")
                 return image
             elif image.state in error_status_set:
                 raise StatusError(f"stop because status reaches {image.state!r}")
