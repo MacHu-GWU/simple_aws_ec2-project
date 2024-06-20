@@ -15,6 +15,16 @@ Backlog (TODO)
 **Miscellaneous**
 
 
+0.9.1 (2024-06-19)
+------------------------------------------------------------------------------
+**Features and Improvements**
+
+- Reword the "detect os type from AMI" logic to be more accurate.
+- Add the following public APIs:
+    - ``simple_aws_ec2.api.os_type_to_users_mapper``
+    - ``simple_aws_ec2.api.detect_os_type``
+
+
 0.8.3 (2024-06-19)
 ------------------------------------------------------------------------------
 **Minor Improvements**
