@@ -16,9 +16,11 @@ from urllib import request
 from botocore.exceptions import ClientError
 from func_args import resolve_kwargs, NOTHING
 from iterproxy import IterProxy
-
 from .vendor.waiter import Waiter
+
 from .exc import StatusError
+from .os_detector import ImageOSTypeEnum, detect_os_type
+
 
 if T.TYPE_CHECKING:  # pragma: no cover
     from mypy_boto3_ec2.client import EC2Client
@@ -27,15 +29,6 @@ if T.TYPE_CHECKING:  # pragma: no cover
         StopInstancesResultTypeDef,
         TerminateInstancesResultTypeDef,
     )
-
-
-class CannotDetectOSTypeError(TypeError):
-    """
-    raised when unable to use the name and description to detect the OS type
-    of the AMI.
-    """
-
-    pass
 
 
 def get_response(url: str) -> str:  # pragma: no cover
@@ -744,43 +737,6 @@ class ImageOwnerGroupEnum(str, enum.Enum):
     aws_marketplace = "aws-marketplace"
 
 
-type_to_users: T.Dict[str, T.List[str]] = {
-    "AmazonLinux": ["ec2-user"],
-    "CentOS": ["centos", "ec2-user"],
-    "Debian": ["admin"],
-    "Fedora": ["fedora", "ec2-user"],
-    "RHEL": ["ec2-user", "root"],
-    "SUSE": ["ec2-user", "root"],
-    "Ubuntu": ["ubuntu"],
-    "Oracle": ["ec2-user"],
-    "Bitnami": ["bitnami"],
-    "Other": ["unknown"],
-}
-
-
-class ImageOSTypeEnum(str, enum.Enum):
-    """
-    Reference:
-
-    - Default user name for AMI: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/connection-prereqs.html#connection-prereqs-get-info-about-instance
-    """
-
-    AmazonLinux = "AmazonLinux"
-    CentOS = "CentOS"
-    Debian = "Debian"
-    Fedora = "Fedora"
-    RHEL = "RHEL"
-    SUSE = "SUSE"
-    Ubuntu = "Ubuntu"
-    Oracle = "Oracle"
-    Bitnami = "Bitnami"
-    Other = "Other"
-
-    @property
-    def users(self) -> T.List[str]:
-        return type_to_users[self.value]
-
-
 @dataclasses.dataclass
 class Image:
     """
@@ -969,52 +925,13 @@ class Image:
         return self.boot_mode == ImageBootModeEnum.uefi_preferred.value
 
     @property
-    def os_type(self) -> ImageOSTypeEnum:  # pragma: no cover
+    def os_type(self) -> "ImageOSTypeEnum":  # pragma: no cover
         """
         Try to use the image name and description to determine the OS type.
 
         If the OS type cannot be determined, raise :class:`CannotDetectOSTypeError`.
         """
-        if self.name.startswith("al"):
-            if self.description is not None:
-                if self.description.startswith("Amazon Linux"):
-                    return ImageOSTypeEnum.AmazonLinux
-        elif self.name.startswith("ubuntu"):
-            if self.description is not None:
-                if "Ubuntu" in self.description:
-                    return ImageOSTypeEnum.Ubuntu
-        elif self.name.startswith("RHEL"):
-            if self.description is not None:
-                if self.description.startswith("RHEL"):
-                    return ImageOSTypeEnum.RHEL
-        elif self.name.startswith("debian"):
-            if self.description is not None:
-                if self.description.startswith("Debian"):
-                    return ImageOSTypeEnum.Debian
-        elif self.name.startswith("suse"):
-            if self.description is not None:
-                if self.description.startswith("SUSE"):
-                    return ImageOSTypeEnum.SUSE
-        elif "fedora" in self.name.lower():
-            if self.description is not None:
-                if "fedora" in self.description.lower():
-                    return ImageOSTypeEnum.Fedora
-        elif "centos" in self.name.lower():
-            if self.description is not None:
-                if "centos" in self.description.lower():
-                    return ImageOSTypeEnum.CentOS
-        elif "oracle" in self.name.lower():
-            if self.description is not None:
-                if "oracle" in self.description.lower():
-                    return ImageOSTypeEnum.Oracle
-        elif "bitnami" in self.name.lower():
-            if self.description is not None:
-                if "bitnami" in self.description.lower():
-                    return ImageOSTypeEnum.Bitnami
-        else:
-            raise CannotDetectOSTypeError
-
-        raise CannotDetectOSTypeError
+        return detect_os_type(name=self.name, description=self.description)
 
     def is_amazon_linux_os(self) -> bool:  # pragma: no cover
         """

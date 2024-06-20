@@ -19,13 +19,16 @@ def test():
     _ = api.ImageVirtualizationTypeEnum
     _ = api.ImageBootModeEnum
     _ = api.ImageOwnerGroupEnum
-    _ = api.ImageOSTypeEnum
     _ = api.Image
     _ = api.ImageIterProxy
     _ = api.Eip
     _ = api.EipIterProxy
 
     _ = api.Ec2MetadataCache
+
+    _ = api.ImageOSTypeEnum
+    _ = api.os_type_to_users_mapper
+    _ = api.detect_os_type
 
     # attribute and method
     _ = api.Ec2Instance.is_pending
